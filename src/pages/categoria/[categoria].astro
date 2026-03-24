@@ -2,10 +2,10 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import { readData } from '../../lib/readData';
-const categoriesData = readData('categories.json', []);
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
+  const categoriesData = readData('categories.json', []);
   const posts = await getCollection('blog');
   const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
   const categoriesFromPosts = [...new Set(posts.map(p => p.data.category).filter(Boolean))];
