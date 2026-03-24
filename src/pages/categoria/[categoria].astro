@@ -1,0 +1,116 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { readData } from '../../lib/readData';
+const categoriesData = readData('categories.json', []);
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
+  const categoriesFromPosts = [...new Set(posts.map(p => p.data.category).filter(Boolean))];
+  const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : categoriesFromPosts;
+
+  return allCategories.map(cat => ({
+    params: { categoria: cat.toLowerCase().replace(/[^a-z0-9]/g, '-') },
+    props: { categoryName: cat },
+  }));
+}
+
+const { categoryName } = Astro.props;
+const allPosts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const posts = allPosts.filter(p =>
+  (p.data.category || '').toLowerCase() === categoryName.toLowerCase()
+);
+const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+---
+
+<BaseLayout title={categoryName} description={`Artigos sobre ${categoryName}`}>
+
+  <!-- page header -->
+  <section class="page-header">
+    <div class="container-xl">
+      <div class="text-center">
+        <h1 class="mt-0 mb-2">{categoryName}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{categoryName}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- section main content -->
+  <section class="main-content">
+    <div class="container-xl">
+      <div class="row gy-4">
+
+        <div class="col-lg-8">
+          {posts.length === 0 && (
+            <div class="bordered rounded padding-30 text-center">
+              <p>Nenhum artigo nesta categoria ainda.</p>
+            </div>
+          )}
+
+          <div class="row gy-4">
+            {posts.map(post => (
+              <div class="col-sm-6">
+                <div class="post post-grid rounded bordered">
+                  <div class="thumb top-rounded">
+                    <a href={`/categoria/${categorySlug}`} class="category-badge position-absolute">{categoryName}</a>
+                    <a href={`/blog/${post.slug}`}>
+                      <div class="inner">
+                        {post.data.heroImage ? (
+                          <img src={post.data.heroImage} alt={post.data.title} />
+                        ) : (
+                          <div style="background: #f5f5f5; width: 100%; height: 200px;"></div>
+                        )}
+                      </div>
+                    </a>
+                  </div>
+                  <div class="details">
+                    <ul class="meta list-inline mb-0">
+                      <li class="list-inline-item">
+                        {post.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </li>
+                    </ul>
+                    <h5 class="post-title mb-3 mt-3"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h5>
+                    {post.data.description && (
+                      <p class="excerpt mb-0">{post.data.description}</p>
+                    )}
+                  </div>
+                  <div class="post-bottom clearfix d-flex align-items-center">
+                    <div class="social-share me-auto">
+                      <button class="toggle-button icon-share"></button>
+                      <ul class="icons list-unstyled list-inline mb-0">
+                        <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fab fa-pinterest"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="fab fa-telegram-plane"></i></a></li>
+                        <li class="list-inline-item"><a href="#"><i class="far fa-envelope"></i></a></li>
+                      </ul>
+                    </div>
+                    <div class="more-button float-end">
+                      <a href={`/blog/${post.slug}`}><span class="icon-options"></span></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <Sidebar />
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

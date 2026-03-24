@@ -1,0 +1,18 @@
+{
+    "seo": {
+        "title": "Sobre o Mundo Afora",
+        "description": "Somos um blog de viagens criado por jornalistas e exploradores apaixonados por descobrir o mundo.",
+        "image": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&auto=format&fit=crop&q=80"
+    },
+    "hero": {
+        "title": "Nascer do Sol em Lugares que Mudam Tudo",
+        "image": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200&auto=format&fit=crop&q=80",
+        "desc": "O Mundo Afora nasceu em 2019 de uma mala, uma câmera e a certeza de que existem histórias importantes para contar além das fronteiras do cotidiano. Somos uma equipe de jornalistas, fotógrafos e viajantes independentes que acredita que viajar bem começa com informação de qualidade."
+    },
+    "content": {
+        "missionTitle": "Nossa Missão",
+        "missionText": "Inspirar e preparar viajantes brasileiros para experiências autênticas ao redor do mundo. Cada artigo é pesquisado com rigor jornalístico, vivido em primeira pessoa e escrito com o cuidado de quem quer que você chegue preparado — e volte transformado.",
+        "teamTitle": "Quem Faz o Mundo Afora",
+        "teamText": "Nossa equipe é formada por Marina Vieira, editora que já visitou mais de 60 países, Carlos Rodrigues, fotógrafo documental especializado em destinos remotos, e colaboradores espalhados por quatro continentes. Cada voz traz um olhar único sobre o que significa explorar o mundo."
+    }
+}

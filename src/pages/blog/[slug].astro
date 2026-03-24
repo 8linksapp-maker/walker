@@ -1,0 +1,166 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import { getCollection } from 'astro:content';
+import { readData } from '../../lib/readData';
+const authorsData = readData('authors.json', []);
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: post,
+  }));
+}
+const post = Astro.props;
+const { Content } = await post.render();
+
+const currentAuthor = authorsData.find((a: any) => a.id === post.data.author) || authorsData[0] || {
+  name: 'Equipe',
+  role: 'Redação',
+  avatar: '',
+  bio: ''
+};
+
+const categorySlug = post.data.category ? post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '';
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} image={post.data.heroImage} type="article">
+
+  <!-- section main content -->
+  <section class="main-content mt-3">
+    <div class="container-xl">
+
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Home</a></li>
+          {post.data.category && (
+            <li class="breadcrumb-item"><a href={`/categoria/${categorySlug}`}>{post.data.category}</a></li>
+          )}
+          <li class="breadcrumb-item active" aria-current="page">{post.data.title}</li>
+        </ol>
+      </nav>
+
+      <div class="row gy-4">
+
+        <div class="col-lg-8">
+          <!-- post single -->
+          <div class="post post-single">
+            <!-- post header -->
+            <div class="post-header">
+              <h1 class="title mt-0 mb-3">{post.data.title}</h1>
+              <ul class="meta list-inline mb-0">
+                <li class="list-inline-item">
+                  {currentAuthor.avatar ? (
+                    <a href="#"><img src={currentAuthor.avatar} class="author" alt={currentAuthor.name} />{currentAuthor.name}</a>
+                  ) : (
+                    <a href="#">{currentAuthor.name}</a>
+                  )}
+                </li>
+                {post.data.category && (
+                  <li class="list-inline-item"><a href={`/categoria/${categorySlug}`}>{post.data.category}</a></li>
+                )}
+                <li class="list-inline-item">
+                  {post.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </li>
+              </ul>
+            </div>
+            <!-- featured image -->
+            {post.data.heroImage && (
+              <div class="featured-image">
+                <img src={post.data.heroImage} alt={post.data.title} />
+              </div>
+            )}
+            <!-- post content -->
+            <div class="post-content clearfix">
+              <Content />
+            </div>
+            <!-- post bottom section -->
+            <div class="post-bottom">
+              <div class="row d-flex align-items-center">
+                <div class="col-md-6 col-12 text-center text-md-start">
+                  {post.data.category && (
+                    <a href={`/categoria/${categorySlug}`} class="tag">#{post.data.category}</a>
+                  )}
+                </div>
+                <div class="col-md-6 col-12">
+                  <ul class="social-icons list-unstyled list-inline mb-0 float-md-end">
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-pinterest"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="fab fa-telegram-plane"></i></a></li>
+                    <li class="list-inline-item"><a href="#"><i class="far fa-envelope"></i></a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spacer" data-height="50"></div>
+
+          <!-- about author -->
+          <div class="about-author padding-30 rounded">
+            <div class="thumb">
+              {currentAuthor.avatar ? (
+                <img src={currentAuthor.avatar} alt={currentAuthor.name} />
+              ) : (
+                <div style="width:80px;height:80px;background:#f5f5f5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#8F9BAD;">
+                  {currentAuthor.name.charAt(0)}
+                </div>
+              )}
+            </div>
+            <div class="details">
+              <h4 class="name"><a href="#">{currentAuthor.name}</a></h4>
+              {currentAuthor.role && <span style="color:#FE4F70;font-size:0.85rem;">{currentAuthor.role}</span>}
+              {currentAuthor.bio && <p>{currentAuthor.bio}</p>}
+              <ul class="social-icons list-unstyled list-inline mb-0">
+                <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
+                <li class="list-inline-item"><a href="#"><i class="fab fa-instagram"></i></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="spacer" data-height="50"></div>
+
+          <!-- section header -->
+          <div class="section-header">
+            <h3 class="section-title">Deixe um Comentário</h3>
+            <img src="/images/wave.svg" class="wave" alt="wave" />
+          </div>
+          <!-- comment form -->
+          <div class="comment-form rounded bordered padding-30">
+            <form id="comment-form" class="comment-form" method="post">
+              <div class="messages"></div>
+              <div class="row">
+                <div class="column col-md-12">
+                  <div class="form-group">
+                    <textarea name="InputComment" id="InputComment" class="form-control" rows="4" placeholder="Seu comentário..." required></textarea>
+                  </div>
+                </div>
+                <div class="column col-md-6">
+                  <div class="form-group">
+                    <input type="text" class="form-control" id="InputName" name="InputName" placeholder="Seu nome" required>
+                  </div>
+                </div>
+                <div class="column col-md-6">
+                  <div class="form-group">
+                    <input type="email" class="form-control" id="InputEmail" name="InputEmail" placeholder="Seu e-mail" required>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" name="submit" id="submit" value="Submit" class="btn btn-default">Enviar Comentário</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <Sidebar />
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

@@ -1,0 +1,18 @@
+{
+    "seo": {
+        "title": "Fale com o Mundo Afora",
+        "description": "Entre em contato com a equipe do Mundo Afora para sugestões de pauta, parcerias ou dúvidas.",
+        "image": ""
+    },
+    "hero": {
+        "title": "Fale com a Nossa Equipe",
+        "subtitle": "Tem uma dica de destino, quer sugerir uma pauta ou propor uma parceria? A equipe do Mundo Afora adoraria ouvir você. Respondemos em até 48 horas úteis."
+    },
+    "cards": {
+        "napTitle": "Contatos Oficiais",
+        "addressLabel": "Redação",
+        "phoneLabel": "WhatsApp Editorial",
+        "emailLabel": "Tempo de resposta: 48h",
+        "formSubmitText": "Enviar Mensagem"
+    }
+}

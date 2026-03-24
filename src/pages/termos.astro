@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { readData } from '../lib/readData';
+const siteConfig = readData('siteConfig.json');
+const termsData = readData('terms.json');
+---
+
+<BaseLayout title={termsData.title} description={`Leia nossos ${termsData.title.toLowerCase()} e condições de uso.`}>
+
+  <!-- page header -->
+  <section class="page-header">
+    <div class="container-xl">
+      <div class="text-center">
+        <h1 class="mt-0 mb-2">{termsData.title}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{termsData.title}</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- section main content -->
+  <section class="main-content">
+    <div class="container-xl">
+      <div class="row gy-4">
+
+        <div class="col-lg-8">
+          <div class="page-content bordered rounded padding-30">
+
+            {termsData.lastUpdated && (
+              <p class="mb-4" style="color:#8F9BAD;font-size:0.9rem;">Última atualização: {termsData.lastUpdated}</p>
+            )}
+
+            {termsData.content?.map(section => (
+              <>
+                <h4>{section.title}</h4>
+                <p>{section.text}</p>
+              </>
+            ))}
+
+            <hr class="my-4" />
+            <p>Para dúvidas sobre estes termos, entre em <a href="/contato">contato conosco</a>.</p>
+
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <Sidebar />
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

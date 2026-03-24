@@ -1,0 +1,169 @@
+---
+import { getCollection } from 'astro:content';
+import PostCardList from '../ui/PostCardList.astro';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  btnText?: string;
+  btnLink?: string;
+  bgImage?: string;
+}
+
+const { title, subtitle } = Astro.props;
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const [featuredPost, ...otherPosts] = posts;
+const recentPosts = otherPosts.slice(0, 4);
+---
+
+<section class="py-10 bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+
+      <!-- Coluna esquerda: Post Destaque grande -->
+      <div>
+        {featuredPost ? (
+          <article class="group relative rounded-2xl overflow-hidden bg-white shadow-lg h-full min-h-[400px]">
+            <!-- Imagem com overlay -->
+            <a href={`/blog/${featuredPost.slug}`} class="block relative overflow-hidden h-full">
+              {featuredPost.data.heroImage ? (
+                <img
+                  src={featuredPost.data.heroImage}
+                  alt={featuredPost.data.title}
+                  class="w-full h-full object-cover min-h-[400px] group-hover:scale-105 transition-transform duration-700"
+                />
+              ) : (
+                <div class="w-full h-full min-h-[400px] bg-gradient-to-br from-primary-100 to-accent-100"></div>
+              )}
+              <!-- Overlay gradient -->
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent"></div>
+
+              <!-- Conteúdo sobre a imagem -->
+              <div class="absolute bottom-0 left-0 right-0 p-8">
+                {featuredPost.data.category && (
+                  <span class="inline-block bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
+                    {featuredPost.data.category}
+                  </span>
+                )}
+                <h1 class="text-white font-bold text-2xl md:text-3xl leading-snug mb-3 group-hover:text-primary-200 transition-colors">
+                  {featuredPost.data.title}
+                </h1>
+                <p class="text-white/75 text-sm line-clamp-2 mb-4">{featuredPost.data.description}</p>
+                <div class="flex items-center gap-3">
+                  <span class="text-white/60 text-xs">
+                    {featuredPost.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </span>
+                  <span class="inline-flex items-center gap-1 text-primary-300 text-xs font-semibold">
+                    Ler artigo
+                    <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </a>
+          </article>
+        ) : (
+          <!-- Fallback sem posts -->
+          <div class="rounded-2xl bg-gradient-to-br from-primary-50 to-accent-50 min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800 mb-3">{title}</h1>
+            <p class="text-slate-500 text-lg">{subtitle}</p>
+          </div>
+        )}
+      </div>
+
+      <!-- Coluna direita: Tabs Popular / Recente -->
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+        <!-- Tabs header -->
+        <div class="flex border-b border-gray-200">
+          <button
+            class="tab-btn flex-1 py-3 text-sm font-bold text-center transition-colors active-tab"
+            data-tab="popular"
+          >
+            Popular
+          </button>
+          <button
+            class="tab-btn flex-1 py-3 text-sm font-bold text-center transition-colors"
+            data-tab="recente"
+          >
+            Recente
+          </button>
+        </div>
+
+        <!-- Tab: Popular (posts mais vistos = por hora usamos os mesmos posts) -->
+        <div id="tab-popular" class="p-4">
+          {recentPosts.length > 0 ? (
+            recentPosts.map((post, i) => (
+              <PostCardList
+                title={post.data.title}
+                slug={post.slug}
+                heroImage={post.data.heroImage}
+                category={post.data.category}
+                pubDate={post.data.pubDate}
+                index={i}
+              />
+            ))
+          ) : (
+            <p class="text-slate-400 text-sm text-center py-8">Nenhum post disponível.</p>
+          )}
+        </div>
+
+        <!-- Tab: Recente -->
+        <div id="tab-recente" class="p-4 hidden">
+          {recentPosts.length > 0 ? (
+            recentPosts.map((post, i) => (
+              <PostCardList
+                title={post.data.title}
+                slug={post.slug}
+                heroImage={post.data.heroImage}
+                category={post.data.category}
+                pubDate={post.data.pubDate}
+                index={i}
+              />
+            ))
+          ) : (
+            <p class="text-slate-400 text-sm text-center py-8">Nenhum post disponível.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tab-btn {
+    color: #94a3b8;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn.active-tab {
+    color: rgb(var(--color-primary));
+    border-bottom-color: rgb(var(--color-primary));
+  }
+</style>
+
+<script>
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels: Record<string, HTMLElement | null> = {
+    popular: document.getElementById('tab-popular'),
+    recente: document.getElementById('tab-recente'),
+  };
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = (btn as HTMLElement).dataset.tab || '';
+
+      // Update buttons
+      tabBtns.forEach(b => b.classList.remove('active-tab'));
+      btn.classList.add('active-tab');
+
+      // Update panels
+      Object.values(tabPanels).forEach(panel => panel?.classList.add('hidden'));
+      tabPanels[tab]?.classList.remove('hidden');
+    });
+  });
+</script>

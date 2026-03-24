@@ -1,0 +1,27 @@
+---
+interface Props {
+  category: string;
+  href?: string;
+  size?: 'sm' | 'md';
+}
+
+const { category, href, size = 'md' } = Astro.props;
+const classes = size === 'sm'
+  ? 'text-[10px] px-2 py-0.5'
+  : 'text-xs px-3 py-1';
+---
+
+{href ? (
+  <a
+    href={href}
+    class={`inline-block bg-primary-500 text-white font-bold rounded-full uppercase tracking-wider hover:bg-primary-600 transition-colors ${classes}`}
+  >
+    {category}
+  </a>
+) : (
+  <span
+    class={`inline-block bg-primary-500 text-white font-bold rounded-full uppercase tracking-wider ${classes}`}
+  >
+    {category}
+  </span>
+)}

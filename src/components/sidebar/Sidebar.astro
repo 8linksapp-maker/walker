@@ -1,0 +1,30 @@
+---
+import WidgetAbout from './WidgetAbout.astro';
+import WidgetPopularPosts from './WidgetPopularPosts.astro';
+import WidgetCategories from './WidgetCategories.astro';
+import WidgetNewsletter from './WidgetNewsletter.astro';
+import { getCollection } from 'astro:content';
+import { readData } from '../../lib/readData';
+const categoriesData = readData('categories.json', []);
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
+const categoriesFromPosts = [...new Set(posts.map(post => post.data.category).filter(Boolean))];
+const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : categoriesFromPosts;
+
+// Contagem de posts por categoria
+const categoryCounts = allCategories.map(cat => ({
+  name: cat,
+  count: posts.filter(p => (p.data.category || '').toLowerCase() === cat.toLowerCase()).length
+}));
+---
+
+<aside class="space-y-6 sticky top-24">
+  <WidgetAbout />
+  <WidgetPopularPosts posts={posts.slice(0, 5)} />
+  <WidgetCategories categories={categoryCounts} />
+  <WidgetNewsletter />
+</aside>

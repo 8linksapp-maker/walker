@@ -1,0 +1,450 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getCollection } from 'astro:content';
+import { readData } from '../lib/readData';
+const siteConfig = readData('siteConfig.json');
+const homeConfig = readData('home.json');
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+// Resolve posts from configured slugs, filling gaps with auto (date-sorted)
+function resolvePosts(configSlugs: string[], count: number, excludeSlug?: string) {
+  const result: typeof posts = [];
+  const seen = new Set<string>();
+  if (excludeSlug) seen.add(excludeSlug);
+
+  for (const slug of configSlugs) {
+    if (!slug) continue;
+    const found = posts.find(p => p.slug === slug);
+    if (found && !seen.has(found.slug)) {
+      result.push(found);
+      seen.add(found.slug);
+    }
+  }
+  for (const p of posts) {
+    if (result.length >= count) break;
+    if (!seen.has(p.slug)) {
+      result.push(p);
+      seen.add(p.slug);
+    }
+  }
+  return result.slice(0, count);
+}
+
+const cfg = homeConfig as any;
+
+// Hero / tab posts
+const [featuredPost, ...restPosts] = posts;
+const tabPosts = restPosts.slice(0, 4);
+
+// Escolha dos Editores
+const editorMainSlug = cfg.editorsPick?.mainSlug || '';
+const editorPick = editorMainSlug ? (posts.find(p => p.slug === editorMainSlug) || posts[0]) : posts[0];
+const editorSidePosts = resolvePosts(cfg.editorsPick?.sideSlugs || [], 4, editorPick?.slug);
+
+// Em Alta
+const trendingPosts = resolvePosts(cfg.trending?.slugs || [], 4);
+
+// Inspiração
+const inspirationPosts = resolvePosts(cfg.inspiration?.slugs || [], 4);
+
+// Posts Recentes
+const latestLimit = cfg.latestPosts?.limit ?? 6;
+const latestPosts = posts.slice(0, latestLimit);
+
+// Títulos
+const titles = {
+  editorsPick: cfg.sectionTitles?.editorsPick || 'Escolha dos Editores',
+  trending: cfg.sectionTitles?.trending || 'Em Alta',
+  inspiration: cfg.sectionTitles?.inspiration || 'Inspiração',
+  latestPosts: cfg.sectionTitles?.latestPosts || 'Posts Recentes',
+  popularTab: cfg.sectionTitles?.popularTab || 'Popular',
+  recentTab: cfg.sectionTitles?.recentTab || 'Recente',
+};
+
+const latestBtn = {
+  text: cfg.latestPosts?.btnText || 'Ver Todos os Posts',
+  link: cfg.latestPosts?.btnLink || '/blog',
+};
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+---
+
+<BaseLayout title={siteConfig.name} description={siteConfig.description}>
+
+  <!-- hero section -->
+  <section id="hero">
+    <div class="container-xl">
+      <div class="row gy-4">
+
+        <!-- featured post large (col-lg-8) -->
+        <div class="col-lg-8">
+          {featuredPost && (
+            <div class="post featured-post-lg">
+              <div class="details clearfix">
+                {featuredPost.data.category && (
+                  <a href={`/categoria/${featuredPost.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{featuredPost.data.category}</a>
+                )}
+                <h2 class="post-title">
+                  <a href={`/blog/${featuredPost.slug}`}>{featuredPost.data.title}</a>
+                </h2>
+                <ul class="meta list-inline mb-0">
+                  <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                  <li class="list-inline-item">{formatDate(featuredPost.data.pubDate)}</li>
+                </ul>
+              </div>
+              <a href={`/blog/${featuredPost.slug}`}>
+                <div class="thumb rounded">
+                  <div
+                    class="inner data-bg-image"
+                    data-bg-image={featuredPost.data.heroImage || 'https://picsum.photos/seed/featured/900/600'}
+                    style={`background-image: url('${featuredPost.data.heroImage || 'https://picsum.photos/seed/featured/900/600'}')`}
+                  ></div>
+                </div>
+              </a>
+            </div>
+          )}
+        </div>
+
+        <!-- post tabs (col-lg-4) -->
+        <div class="col-lg-4">
+          <div class="post-tabs rounded bordered">
+            <!-- tab navs -->
+            <ul class="nav nav-tabs nav-pills nav-fill" id="postsTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button aria-controls="popular" aria-selected="true" class="nav-link active" data-bs-target="#popular" data-bs-toggle="tab" id="popular-tab" role="tab" type="button">{titles.popularTab}</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button aria-controls="recent" aria-selected="false" class="nav-link" data-bs-target="#recent" data-bs-toggle="tab" id="recent-tab" role="tab" type="button">{titles.recentTab}</button>
+              </li>
+            </ul>
+            <!-- tab contents -->
+            <div class="tab-content" id="postsTabContent">
+              <div class="lds-dual-ring"></div>
+              <!-- popular posts -->
+              <div aria-labelledby="popular-tab" class="tab-pane fade show active" id="popular" role="tabpanel">
+                {tabPosts.map(post => (
+                  <div class="post post-list-sm circle">
+                    <div class="thumb circle">
+                      <a href={`/blog/${post.slug}`}>
+                        <div class="inner">
+                          <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}/80/80`} alt={post.data.title} />
+                        </div>
+                      </a>
+                    </div>
+                    <div class="details clearfix">
+                      <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                      <ul class="meta list-inline mt-1 mb-0">
+                        <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <!-- recent posts -->
+              <div aria-labelledby="recent-tab" class="tab-pane fade" id="recent" role="tabpanel">
+                {tabPosts.map(post => (
+                  <div class="post post-list-sm circle">
+                    <div class="thumb circle">
+                      <a href={`/blog/${post.slug}`}>
+                        <div class="inner">
+                          <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}r/80/80`} alt={post.data.title} />
+                        </div>
+                      </a>
+                    </div>
+                    <div class="details clearfix">
+                      <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                      <ul class="meta list-inline mt-1 mb-0">
+                        <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- main content -->
+  <section class="main-content">
+    <div class="container-xl">
+      <div class="row gy-4">
+
+        <!-- left column col-lg-8 -->
+        <div class="col-lg-8">
+
+          <!-- Editor's Pick -->
+          <div class="section-header">
+            <h3 class="section-title">{titles.editorsPick}</h3>
+            <img src="/images/wave.svg" class="wave" alt="wave" />
+          </div>
+
+          {posts.length > 0 && (
+            <div class="padding-30 rounded bordered">
+              <div class="row gy-5">
+                <!-- Big card -->
+                <div class="col-sm-6">
+                  {editorPick && (
+                    <div class="post">
+                      <div class="thumb rounded">
+                        {editorPick.data.category && (
+                          <a href={`/categoria/${editorPick.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{editorPick.data.category}</a>
+                        )}
+                        <span class="post-format"><i class="icon-picture"></i></span>
+                        <a href={`/blog/${editorPick.slug}`}>
+                          <div class="inner">
+                            <img src={editorPick.data.heroImage || `https://picsum.photos/seed/${editorPick.slug}lg/600/400`} alt={editorPick.data.title} />
+                          </div>
+                        </a>
+                      </div>
+                      <ul class="meta list-inline mt-4 mb-0">
+                        <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                        <li class="list-inline-item">{formatDate(editorPick.data.pubDate)}</li>
+                      </ul>
+                      <h5 class="post-title mb-3 mt-3"><a href={`/blog/${editorPick.slug}`}>{editorPick.data.title}</a></h5>
+                      <p class="excerpt mb-0">{editorPick.data.description}</p>
+                    </div>
+                  )}
+                </div>
+                <!-- Side list -->
+                <div class="col-sm-6">
+                  {editorSidePosts.map(post => (
+                    <div class="post post-list-sm square">
+                      <div class="thumb rounded">
+                        <a href={`/blog/${post.slug}`}>
+                          <div class="inner">
+                            <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}sm/120/90`} alt={post.data.title} />
+                          </div>
+                        </a>
+                      </div>
+                      <div class="details clearfix">
+                        <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                        <ul class="meta list-inline mt-1 mb-0">
+                          <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div class="spacer" data-height="50" style="height: 50px;"></div>
+
+          <!-- Trending -->
+          <div class="section-header">
+            <h3 class="section-title">{titles.trending}</h3>
+            <img src="/images/wave.svg" class="wave" alt="wave" />
+          </div>
+
+          {trendingPosts.length > 0 && (
+            <div class="padding-30 rounded bordered">
+              <div class="row gy-5">
+                <!-- Left column -->
+                <div class="col-sm-6">
+                  {trendingPosts[0] && (
+                    <>
+                      <div class="post">
+                        <div class="thumb rounded">
+                          {trendingPosts[0].data.category && (
+                            <a href={`/categoria/${trendingPosts[0].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[0].data.category}</a>
+                          )}
+                          <span class="post-format"><i class="icon-picture"></i></span>
+                          <a href={`/blog/${trendingPosts[0].slug}`}>
+                            <div class="inner">
+                              <img src={trendingPosts[0].data.heroImage || `https://picsum.photos/seed/${trendingPosts[0].slug}tr/600/400`} alt={trendingPosts[0].data.title} />
+                            </div>
+                          </a>
+                        </div>
+                        <ul class="meta list-inline mt-4 mb-0">
+                          <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                          <li class="list-inline-item">{formatDate(trendingPosts[0].data.pubDate)}</li>
+                        </ul>
+                        <h5 class="post-title mb-3 mt-3"><a href={`/blog/${trendingPosts[0].slug}`}>{trendingPosts[0].data.title}</a></h5>
+                        <p class="excerpt mb-0">{trendingPosts[0].data.description}</p>
+                      </div>
+                      {trendingPosts[1] && (
+                        <div class="post post-list-sm square before-seperator">
+                          <div class="thumb rounded">
+                            <a href={`/blog/${trendingPosts[1].slug}`}>
+                              <div class="inner">
+                                <img src={trendingPosts[1].data.heroImage || `https://picsum.photos/seed/${trendingPosts[1].slug}sm/120/90`} alt={trendingPosts[1].data.title} />
+                              </div>
+                            </a>
+                          </div>
+                          <div class="details clearfix">
+                            <h6 class="post-title my-0"><a href={`/blog/${trendingPosts[1].slug}`}>{trendingPosts[1].data.title}</a></h6>
+                            <ul class="meta list-inline mt-1 mb-0">
+                              <li class="list-inline-item">{formatDate(trendingPosts[1].data.pubDate)}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <!-- Right column -->
+                <div class="col-sm-6">
+                  {trendingPosts[2] && (
+                    <>
+                      <div class="post">
+                        <div class="thumb rounded">
+                          {trendingPosts[2].data.category && (
+                            <a href={`/categoria/${trendingPosts[2].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[2].data.category}</a>
+                          )}
+                          <span class="post-format"><i class="icon-picture"></i></span>
+                          <a href={`/blog/${trendingPosts[2].slug}`}>
+                            <div class="inner">
+                              <img src={trendingPosts[2].data.heroImage || `https://picsum.photos/seed/${trendingPosts[2].slug}tr2/600/400`} alt={trendingPosts[2].data.title} />
+                            </div>
+                          </a>
+                        </div>
+                        <ul class="meta list-inline mt-4 mb-0">
+                          <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                          <li class="list-inline-item">{formatDate(trendingPosts[2].data.pubDate)}</li>
+                        </ul>
+                        <h5 class="post-title mb-3 mt-3"><a href={`/blog/${trendingPosts[2].slug}`}>{trendingPosts[2].data.title}</a></h5>
+                        <p class="excerpt mb-0">{trendingPosts[2].data.description}</p>
+                      </div>
+                      {trendingPosts[3] && (
+                        <div class="post post-list-sm square before-seperator">
+                          <div class="thumb rounded">
+                            <a href={`/blog/${trendingPosts[3].slug}`}>
+                              <div class="inner">
+                                <img src={trendingPosts[3].data.heroImage || `https://picsum.photos/seed/${trendingPosts[3].slug}sm2/120/90`} alt={trendingPosts[3].data.title} />
+                              </div>
+                            </a>
+                          </div>
+                          <div class="details clearfix">
+                            <h6 class="post-title my-0"><a href={`/blog/${trendingPosts[3].slug}`}>{trendingPosts[3].data.title}</a></h6>
+                            <ul class="meta list-inline mt-1 mb-0">
+                              <li class="list-inline-item">{formatDate(trendingPosts[3].data.pubDate)}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div class="spacer" data-height="50" style="height: 50px;"></div>
+
+          <!-- Inspiration Carousel -->
+          {inspirationPosts.length > 0 && (
+            <>
+              <div class="section-header">
+                <h3 class="section-title">{titles.inspiration}</h3>
+                <img src="/images/wave.svg" class="wave" alt="wave" />
+                <div class="slick-arrows-top">
+                  <button type="button" data-role="none" class="carousel-topNav-prev slick-custom-buttons" aria-label="Previous"><i class="icon-arrow-left"></i></button>
+                  <button type="button" data-role="none" class="carousel-topNav-next slick-custom-buttons" aria-label="Next"><i class="icon-arrow-right"></i></button>
+                </div>
+              </div>
+              <div class="row post-carousel-twoCol post-carousel">
+                {inspirationPosts.map(post => (
+                  <div class="post post-over-content col-md-6">
+                    <div class="details clearfix">
+                      {post.data.category && (
+                        <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{post.data.category}</a>
+                      )}
+                      <h4 class="post-title"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h4>
+                      <ul class="meta list-inline mb-0">
+                        <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                        <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
+                      </ul>
+                    </div>
+                    <a href={`/blog/${post.slug}`}>
+                      <div class="thumb rounded">
+                        <div class="inner">
+                          <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}ins/600/400`} alt={post.data.title} />
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div class="spacer" data-height="50" style="height: 50px;"></div>
+
+          <!-- Latest Posts -->
+          <div class="section-header">
+            <h3 class="section-title">{titles.latestPosts}</h3>
+            <img src="/images/wave.svg" class="wave" alt="wave" />
+          </div>
+
+          {latestPosts.length > 0 && (
+            <div class="padding-30 rounded bordered">
+              <div class="row">
+                {latestPosts.map(post => (
+                  <div class="col-md-12 col-sm-6">
+                    <div class="post post-list clearfix">
+                      <div class="thumb rounded">
+                        <span class="post-format-sm"><i class="icon-picture"></i></span>
+                        <a href={`/blog/${post.slug}`}>
+                          <div class="inner">
+                            <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}lt/160/120`} alt={post.data.title} />
+                          </div>
+                        </a>
+                      </div>
+                      <div class="details">
+                        <ul class="meta list-inline mb-3">
+                          <li class="list-inline-item"><a href="/sobre">{siteConfig.author}</a></li>
+                          {post.data.category && (
+                            <li class="list-inline-item"><a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}>{post.data.category}</a></li>
+                          )}
+                          <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
+                        </ul>
+                        <h5 class="post-title"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h5>
+                        <p class="excerpt mb-0">{post.data.description}</p>
+                        <div class="post-bottom clearfix d-flex align-items-center">
+                          <div class="social-share me-auto">
+                            <button class="toggle-button icon-share"></button>
+                            <ul class="icons list-unstyled list-inline mb-0">
+                              <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                              <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
+                              <li class="list-inline-item"><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
+                            </ul>
+                          </div>
+                          <div class="more-button float-end">
+                            <a href={`/blog/${post.slug}`}><span class="icon-options"></span></a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <!-- load more -->
+              <div class="text-center">
+                <a href={latestBtn.link} class="btn btn-simple">{latestBtn.text}</a>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        <!-- right sidebar col-lg-4 -->
+        <div class="col-lg-4">
+          <Sidebar />
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

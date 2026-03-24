@@ -1,0 +1,42 @@
+---
+import SectionHeader from '../ui/SectionHeader.astro';
+
+interface CategoryItem {
+  title: string;
+  desc: string;
+  link: string;
+}
+
+interface Props {
+  title?: string;
+  items?: CategoryItem[];
+}
+
+const { title = "Explore por Categorias", items = [] } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="py-12 bg-gray-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4">
+      <SectionHeader title={title} />
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        {items.map((cat, i) => (
+          <a
+            href={cat.link || `/categoria/${cat.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+            class="group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all text-center"
+          >
+            <!-- Ícone decorativo com inicial -->
+            <div class={`w-12 h-12 rounded-full flex items-center justify-center mb-3 text-lg font-bold transition-colors ${i % 2 === 0 ? 'bg-primary-100 text-primary-600 group-hover:bg-primary-500 group-hover:text-white' : 'bg-accent-100 text-accent-600 group-hover:bg-accent-500 group-hover:text-white'}`}>
+              {cat.title.charAt(0).toUpperCase()}
+            </div>
+            <span class="font-semibold text-slate-700 text-sm group-hover:text-primary-600 transition-colors">{cat.title}</span>
+            {cat.desc && (
+              <span class="text-slate-400 text-xs mt-1 line-clamp-2 leading-snug">{cat.desc}</span>
+            )}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

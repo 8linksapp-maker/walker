@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { readData } from '../lib/readData';
+const siteConfig = readData('siteConfig.json');
+const contatoData = readData('contato.json');
+---
+
+<BaseLayout
+  title={contatoData.seo?.title || "Contato"}
+  description={contatoData.seo?.description}
+  image={contatoData.seo?.image}
+>
+
+  <!-- page header -->
+  <section class="page-header">
+    <div class="container-xl">
+      <div class="text-center">
+        <h1 class="mt-0 mb-2">{contatoData.hero?.title || "Contato"}</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Contato</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- section main content -->
+  <section class="main-content">
+    <div class="container-xl">
+      <div class="row gy-4">
+
+        <div class="col-lg-8">
+          <div class="page-content bordered rounded padding-30">
+
+            {contatoData.hero?.subtitle && (
+              <p class="mb-4">{contatoData.hero.subtitle}</p>
+            )}
+
+            <!-- contact info -->
+            <div class="row gy-3 mb-4">
+              {siteConfig.contact?.address && (
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="icon-location-pin" style="font-size:2rem;color:#FE4F70;"></i>
+                    <h6 class="mt-2">{contatoData.cards?.addressLabel || "Endereço"}</h6>
+                    <p class="mb-0" style="font-size:0.9rem;">{siteConfig.contact.address}</p>
+                  </div>
+                </div>
+              )}
+              {siteConfig.contact?.phone && (
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="icon-phone" style="font-size:2rem;color:#FE4F70;"></i>
+                    <h6 class="mt-2">{contatoData.cards?.phoneLabel || "Telefone"}</h6>
+                    <p class="mb-0" style="font-size:0.9rem;">{siteConfig.contact.phone}</p>
+                  </div>
+                </div>
+              )}
+              {siteConfig.contact?.email && (
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="icon-envelope" style="font-size:2rem;color:#FE4F70;"></i>
+                    <h6 class="mt-2">E-mail</h6>
+                    <p class="mb-0" style="font-size:0.9rem;"><a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a></p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <hr class="my-4" />
+
+            <!-- contact form -->
+            <h4 class="mb-3">Envie uma Mensagem</h4>
+            <form id="contact-form" method="post">
+              <div class="messages"></div>
+              <div class="row">
+                <div class="column col-md-6">
+                  <div class="form-group">
+                    <input type="text" class="form-control" name="InputName" placeholder="Seu nome" required>
+                  </div>
+                </div>
+                <div class="column col-md-6">
+                  <div class="form-group">
+                    <input type="email" class="form-control" name="InputEmail" placeholder="Seu e-mail" required>
+                  </div>
+                </div>
+                <div class="column col-md-12">
+                  <div class="form-group">
+                    <input type="text" class="form-control" name="InputSubject" placeholder="Assunto">
+                  </div>
+                </div>
+                <div class="column col-md-12">
+                  <div class="form-group">
+                    <textarea class="form-control" name="InputMessage" rows="5" placeholder="Sua mensagem..." required></textarea>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-default">{contatoData.cards?.formSubmitText || "Enviar Mensagem"}</button>
+            </form>
+
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <Sidebar />
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

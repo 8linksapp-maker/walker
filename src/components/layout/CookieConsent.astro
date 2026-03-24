@@ -1,0 +1,45 @@
+---
+---
+<div id="cookie-banner" class="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-[100] transform translate-y-20 opacity-0 transition-all duration-500 pointer-events-none">
+  <div class="bg-white text-slate-800 p-5 rounded-2xl shadow-2xl border border-gray-200">
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm mb-1 text-slate-800">Privacidade e Cookies</h4>
+        <p class="text-slate-500 text-xs leading-relaxed">
+          Utilizamos cookies para melhorar sua experiência. Ao clicar em "Aceitar", você concorda com nossa política.
+        </p>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button id="accept-cookies" class="flex-1 px-4 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm transition-all">
+        Aceitar
+      </button>
+      <a href="/privacidade" class="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-slate-700 font-bold text-sm text-center transition-all">
+        Ler Política
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const banner = document.getElementById('cookie-banner');
+  const acceptBtn = document.getElementById('accept-cookies');
+
+  if (banner && acceptBtn) {
+    if (!localStorage.getItem('cookies-accepted')) {
+      setTimeout(() => {
+        banner.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 2000);
+    }
+
+    acceptBtn.addEventListener('click', () => {
+      localStorage.setItem('cookies-accepted', 'true');
+      banner.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+    });
+  }
+</script>

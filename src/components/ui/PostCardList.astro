@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+  slug: string;
+  heroImage?: string;
+  category?: string;
+  pubDate: Date;
+  index?: number;
+}
+
+const { title, slug, heroImage, category, pubDate, index } = Astro.props;
+---
+
+<article class="group flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
+  <!-- Número (opcional) -->
+  {index !== undefined && (
+    <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-500 text-xs font-bold flex items-center justify-center">
+      {index + 1}
+    </span>
+  )}
+
+  <!-- Thumbnail -->
+  <a href={`/blog/${slug}`} class="flex-shrink-0 w-16 h-14 rounded-lg overflow-hidden bg-gray-100">
+    {heroImage ? (
+      <img
+        src={heroImage}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+    ) : (
+      <div class="w-full h-full bg-gradient-to-br from-primary-50 to-accent-50"></div>
+    )}
+  </a>
+
+  <!-- Conteúdo -->
+  <div class="flex-1 min-w-0">
+    {category && (
+      <span class="text-primary-500 text-[10px] font-bold uppercase tracking-wide">{category}</span>
+    )}
+    <h4 class="font-semibold text-slate-800 text-xs leading-snug line-clamp-2 group-hover:text-primary-500 transition-colors mt-0.5">
+      <a href={`/blog/${slug}`}>{title}</a>
+    </h4>
+    <p class="text-slate-400 text-[10px] mt-1">
+      {pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+    </p>
+  </div>
+</article>

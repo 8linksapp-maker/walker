@@ -1,0 +1,39 @@
+---
+import PostCardList from '../ui/PostCardList.astro';
+
+interface Post {
+  slug: string;
+  data: {
+    title: string;
+    heroImage?: string;
+    category?: string;
+    pubDate: Date;
+  };
+}
+
+interface Props {
+  posts: Post[];
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="bg-white rounded-2xl border border-gray-200 p-5">
+  <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 relative">
+    Posts Populares
+    <span class="absolute bottom-0 left-0 w-12 h-0.5 bg-primary-500"></span>
+  </h3>
+
+  <div class="space-y-1">
+    {posts.map((post, i) => (
+      <PostCardList
+        title={post.data.title}
+        slug={post.slug}
+        heroImage={post.data.heroImage}
+        category={post.data.category}
+        pubDate={post.data.pubDate}
+        index={i}
+      />
+    ))}
+  </div>
+</div>

@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  align?: 'left' | 'center';
+}
+
+const { title, align = 'left' } = Astro.props;
+const alignClass = align === 'center' ? 'items-center text-center' : 'items-start';
+---
+
+<div class={`flex flex-col mb-8 ${alignClass}`}>
+  <h2 class="text-2xl font-bold text-slate-800 relative inline-block">
+    {title}
+    <!-- Wave decorativa abaixo do título -->
+    <span class="absolute -bottom-2 left-0 right-0 h-0.5 bg-primary-500 rounded-full"></span>
+  </h2>
+</div>

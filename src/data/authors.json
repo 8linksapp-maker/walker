@@ -1,0 +1,16 @@
+[
+  {
+    "id": "marina-vieira",
+    "name": "Marina Vieira",
+    "role": "Editora & Viajante",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&auto=format&fit=crop&q=80",
+    "bio": "Jornalista e viajante apaixonada, Marina já percorreu mais de 60 países nos 5 continentes. Escreve sobre destinos com profundidade e sensibilidade para quem quer viver experiências únicas."
+  },
+  {
+    "id": "carlos-rodrigues",
+    "name": "Carlos Rodrigues",
+    "role": "Fotógrafo & Explorador",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&auto=format&fit=crop&q=80",
+    "bio": "Fotógrafo documental e mochileiro de carteirinha. Carlos documenta sua jornada por destinos remotos e compartilha dicas práticas para viajantes independentes."
+  }
+]

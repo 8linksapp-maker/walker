@@ -1,0 +1,45 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  heroImage?: string;
+  category?: string;
+  pubDate: Date;
+}
+
+const { title, description, slug, heroImage, category, pubDate } = Astro.props;
+---
+
+<article class="group relative rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-xl transition-shadow">
+  <!-- Imagem com overlay -->
+  <a href={`/blog/${slug}`} class="block relative overflow-hidden aspect-[16/9]">
+    {heroImage ? (
+      <img
+        src={heroImage}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      />
+    ) : (
+      <div class="w-full h-full bg-gradient-to-br from-primary-100 to-accent-100"></div>
+    )}
+    <!-- Overlay gradient at bottom -->
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+
+    <!-- Content overlay -->
+    <div class="absolute bottom-0 left-0 right-0 p-6">
+      {category && (
+        <span class="inline-block bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
+          {category}
+        </span>
+      )}
+      <h2 class="text-white font-bold text-xl leading-snug line-clamp-2 group-hover:text-primary-200 transition-colors">
+        {title}
+      </h2>
+      <p class="text-white/70 text-sm mt-2 line-clamp-2">{description}</p>
+      <p class="text-white/50 text-xs mt-3">
+        {pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+      </p>
+    </div>
+  </a>
+</article>
