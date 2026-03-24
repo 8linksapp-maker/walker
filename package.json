@@ -13,6 +13,7 @@
         "@astrojs/tailwind": "^6.0.2",
         "@astrojs/vercel": "^8.0.0",
         "astro": "^5.1.0",
+        "fast-xml-parser": "^5.5.9",
         "lucide-react": "^0.468.0",
         "marked": "^15.0.0",
         "react": "^18.3.1",

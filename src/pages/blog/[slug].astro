@@ -1,9 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
+import EmailInlineBanner from '../../plugins/email-list/EmailInlineBanner.astro';
 import { getCollection } from 'astro:content';
 import { readData } from '../../lib/readData';
 const authorsData = readData('authors.json', []);
+
+const pluginsConfig = readData('pluginsConfig.json', {}) as any;
+const inlineConfig = pluginsConfig?.emailList?.inline;
+const inlineEnabled = inlineConfig?.enabled === true;
+const inlinePosition = Number(inlineConfig?.position ?? 3);
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -43,7 +49,7 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
 
       <div class="row gy-4">
 
-        <div class="col-lg-8">
+        <div class="col-lg-8" style="min-width:0;">
           <!-- post single -->
           <div class="post post-single">
             <!-- post header -->
@@ -75,6 +81,11 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
             <div class="post-content clearfix">
               <Content />
             </div>
+            {inlineEnabled && (
+              <div id="email-inline-source" data-position={inlinePosition} style="display:none">
+                <EmailInlineBanner />
+              </div>
+            )}
             <!-- post bottom section -->
             <div class="post-bottom">
               <div class="row d-flex align-items-center">
@@ -112,7 +123,7 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
             </div>
             <div class="details">
               <h4 class="name"><a href="#">{currentAuthor.name}</a></h4>
-              {currentAuthor.role && <span style="color:#FE4F70;font-size:0.85rem;">{currentAuthor.role}</span>}
+              {currentAuthor.role && <span style="color:var(--walker-primary);font-size:0.85rem;">{currentAuthor.role}</span>}
               {currentAuthor.bio && <p>{currentAuthor.bio}</p>}
               <ul class="social-icons list-unstyled list-inline mb-0">
                 <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
@@ -162,5 +173,36 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
       </div>
     </div>
   </section>
+
+  <script is:inline>
+  // Substitui &nbsp; (espaço não-quebrável do Quill) por espaços normais nos artigos já salvos
+  (function() {
+    var postContent = document.querySelector('.post-content');
+    if (!postContent) return;
+    var walker = document.createTreeWalker(postContent, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue && node.nodeValue.indexOf('\u00A0') !== -1) {
+        node.nodeValue = node.nodeValue.replace(/\u00A0/g, ' ');
+      }
+    }
+  })();
+  </script>
+
+  {inlineEnabled && (
+    <script>
+    (function() {
+      const source = document.getElementById('email-inline-source');
+      if (!source) return;
+      const pos = Number((source as HTMLElement).dataset.position) || 3;
+      const paragraphs = document.querySelectorAll('.post-content > p');
+      const target = paragraphs[pos - 1] || paragraphs[paragraphs.length - 1];
+      if (target) {
+        target.insertAdjacentElement('afterend', source);
+        source.style.display = 'block';
+      }
+    })();
+    </script>
+  )}
 
 </BaseLayout>

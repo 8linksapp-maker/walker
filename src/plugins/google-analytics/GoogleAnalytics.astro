@@ -1,0 +1,29 @@
+---
+/**
+ * GoogleAnalytics.astro — Plugin Google Analytics
+ *
+ * Injeta o snippet gtag.js no <head> de todas as páginas públicas.
+ * Lê o measurementId de src/data/pluginsConfig.json via readData().
+ * Se measurementId estiver vazio, não renderiza nada.
+ *
+ * Uso em BaseLayout.astro:
+ *   import GoogleAnalytics from '../plugins/google-analytics/GoogleAnalytics.astro';
+ *   <GoogleAnalytics />
+ */
+import { readData } from '../../lib/readData';
+
+const pluginsConfig = readData('pluginsConfig.json', { googleAnalytics: { measurementId: '' } });
+const measurementId: string = pluginsConfig?.googleAnalytics?.measurementId || '';
+---
+
+{measurementId && (
+  <>
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></script>
+    <script define:vars={{ measurementId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', measurementId);
+    </script>
+  </>
+)}

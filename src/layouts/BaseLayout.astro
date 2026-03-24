@@ -1,8 +1,29 @@
 ---
 import { readData } from '../lib/readData';
 import { getCollection } from 'astro:content';
+import GoogleAnalytics from '../plugins/google-analytics/GoogleAnalytics.astro';
+import MetaPixel from '../plugins/meta-pixel/MetaPixel.astro';
+import EmailPopup from '../plugins/email-list/EmailPopup.astro';
 
 const siteConfig = readData('siteConfig.json');
+const pluginsConfig = readData('pluginsConfig.json', {});
+const gscVerificationTag = (pluginsConfig as any)?.searchConsole?.verificationTag?.trim() || '';
+
+// Font mapping
+const fontMap: Record<string, { heading: string; body: string; url: string }> = {
+  inter:      { heading: 'Inter',            body: 'Roboto Mono',   url: 'family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500' },
+  outfit:     { heading: 'Outfit',           body: 'Inter',         url: 'family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500' },
+  roboto:     { heading: 'Roboto',           body: 'Open Sans',     url: 'family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600' },
+  poppins:    { heading: 'Poppins',          body: 'Roboto',        url: 'family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500' },
+  montserrat: { heading: 'Montserrat',       body: 'Merriweather',  url: 'family=Montserrat:wght@400;500;600;700&family=Merriweather:wght@400;700' },
+  playfair:   { heading: 'Playfair Display', body: 'Source Sans 3', url: 'family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@400;600' },
+  lora:       { heading: 'Lora',             body: 'Merriweather',  url: 'family=Lora:wght@400;500;600;700&family=Merriweather:wght@400;700' },
+};
+const selectedFont = fontMap[siteConfig.theme?.font || 'poppins'] || fontMap.poppins;
+
+const primaryColor = siteConfig.theme?.primary || '#FE4F70';
+const accentColor = siteConfig.theme?.accent || '#FFA387';
+const darkColor = siteConfig.theme?.dark || '#203656';
 const categoriesData = readData('categories.json', []);
 const menuItems: any[] = readData('menu.json', { items: [] }).items || [];
 
@@ -41,6 +62,13 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+  <!-- Google Search Console verification -->
+  {gscVerificationTag && (
+    gscVerificationTag.startsWith('<')
+      ? <Fragment set:html={gscVerificationTag} />
+      : <meta name="google-site-verification" content={gscVerificationTag} />
+  )}
+
   <!-- Open Graph -->
   <meta property="og:type" content={type} />
   <meta property="og:title" content={formattedTitle} />
@@ -56,21 +84,24 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
   <!-- Walker theme -->
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts (dynamic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?${selectedFont.url}&display=swap`}>
   <!-- Dynamic theme colors from CMS -->
-  <style is:inline>
+  <Fragment set:html={`<style>
     :root {
-      --walker-primary: {siteConfig.theme?.primary || '#FE4F70'};
-      --walker-dark: {siteConfig.theme?.primaryDark || '#203656'};
+      --walker-primary: ${primaryColor};
+      --walker-accent: ${accentColor};
+      --walker-dark: ${darkColor};
+      --walker-font-heading: "${selectedFont.heading}", sans-serif;
+      --walker-font-body: "${selectedFont.body}", sans-serif;
     }
-    .btn-default,
-    .category-badge,
-    .post-category a,
-    .tag-cloud a:hover,
-    .widget-title::after,
-    .pagination .page-item.active .page-link { background-color: var(--walker-primary) !important; border-color: var(--walker-primary) !important; }
-    a:hover, .post-title a:hover, .nav-link:hover { color: var(--walker-primary) !important; }
-    .navbar-brand span { color: var(--walker-dark) !important; }
-  </style>
+  </style>`} />
+  <!-- Google Analytics (via plugin) -->
+  <GoogleAnalytics />
+  <!-- Meta Pixel (via plugin) -->
+  <MetaPixel />
 </head>
 
 <body class={bodyClass}>
@@ -105,7 +136,7 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
           {siteConfig.logo ? (
             <img src={siteConfig.logo} alt={siteConfig.name} />
           ) : (
-            <span style="font-family: Poppins, sans-serif; font-weight: 700; font-size: 1.5rem; color: #203656;">{siteConfig.name}</span>
+            <span style="font-family: var(--walker-font-heading); font-weight: 700; font-size: 1.5rem; color: var(--walker-dark);">{siteConfig.name}</span>
           )}
         </a>
 
@@ -235,7 +266,7 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
     {siteConfig.logo ? (
       <img src={siteConfig.logo} alt={siteConfig.name} />
     ) : (
-      <span style="font-family: Poppins, sans-serif; font-weight: 700; font-size: 1.5rem; color: #203656;">{siteConfig.name}</span>
+      <span style="font-family: var(--walker-font-heading); font-weight: 700; font-size: 1.5rem; color: var(--walker-dark);">{siteConfig.name}</span>
     )}
   </div>
   <nav>
@@ -262,6 +293,9 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
     {siteConfig.social?.instagram && (<li class="list-inline-item"><a href={siteConfig.social.instagram} target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a></li>)}
   </ul>
 </div>
+
+<!-- Email Popup -->
+<EmailPopup />
 
 <!-- SCRIPTS -->
 <script is:inline src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

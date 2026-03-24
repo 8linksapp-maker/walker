@@ -64,6 +64,15 @@ export default function ConfigEditor() {
     const inputClass = "w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all shadow-sm text-slate-800 font-medium";
     const labelClass = "block text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1";
 
+    const presetThemes = [
+        { name: 'Rosa Original', primary: '#FE4F70', accent: '#FFA387', dark: '#203656' },
+        { name: 'Oceano',        primary: '#2196F3', accent: '#64B5F6', dark: '#0D2137' },
+        { name: 'Floresta',      primary: '#4CAF50', accent: '#81C784', dark: '#1B3A2A' },
+        { name: 'Sunset',        primary: '#FF5722', accent: '#FFAB91', dark: '#4A1A0A' },
+        { name: 'Roxo Elegante', primary: '#7C3AED', accent: '#A78BFA', dark: '#2D1060' },
+        { name: 'Dourado',       primary: '#D4A017', accent: '#F0D060', dark: '#3D2A00' },
+    ];
+
     return (
         <form onSubmit={handleSave} className="space-y-8 pb-32 max-w-3xl">
             {/* Action Bar */}
@@ -109,10 +118,28 @@ export default function ConfigEditor() {
                                 <label className={labelClass}>Nome do Site / Empresa</label>
                                 <input type="text" value={config?.name || ''} onChange={e => setConfig({ ...config, name: e.target.value })} className={inputClass} />
                             </div>
+                            {/* Preset Themes */}
+                            <div>
+                                <label className={labelClass}>Temas Prontos</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {presetThemes.map(preset => (
+                                        <button
+                                            key={preset.name}
+                                            type="button"
+                                            onClick={() => setConfig({ ...config, theme: { ...config.theme, primary: preset.primary, accent: preset.accent, dark: preset.dark } })}
+                                            className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all text-sm font-semibold text-slate-700"
+                                        >
+                                            <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.primary }} />
+                                            <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.accent }} />
+                                            {preset.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 {[
-                                    { key: 'primary', label: 'Cor Primária (Hex)' },
-                                    { key: 'accent', label: 'Cor Secundária (Hex)' },
+                                    { key: 'primary', label: 'Cor Primária' },
+                                    { key: 'accent', label: 'Cor de Destaque' },
                                 ].map(f => (
                                     <div key={f.key}>
                                         <label className={labelClass}>{f.label}</label>
@@ -123,6 +150,18 @@ export default function ConfigEditor() {
                                     </div>
                                 ))}
                             </div>
+                            {/* Live Preview */}
+                            {(config?.theme?.primary || config?.theme?.accent) && (
+                                <div>
+                                    <label className={labelClass}>Preview</label>
+                                    <div
+                                        className="h-14 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                                        style={{ background: `linear-gradient(to right, ${config?.theme?.primary || '#FE4F70'} 0%, ${config?.theme?.accent || '#FFA387'} 100%)` }}
+                                    >
+                                        Botões · Destaques · Categorias
+                                    </div>
+                                </div>
+                            )}
                             <div>
                                 <label className={labelClass}>Combinação de Fontes</label>
                                 <select value={config?.theme?.font || 'outfit'} onChange={e => setConfig({ ...config, theme: { ...config.theme, font: e.target.value } })} className={inputClass}>
@@ -144,15 +183,26 @@ export default function ConfigEditor() {
             <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Informações de Contato</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* URL do site — nível raiz do siteConfig */}
+                    <div>
+                        <label className={labelClass}>URL do Site</label>
+                        <input type="text" placeholder="https://seusite.com.br" value={config?.url || ''} onChange={e => setConfig({ ...config, url: e.target.value })} className={inputClass} />
+                    </div>
+                    {/* email, phone, address — dentro de contact{} */}
                     {[
-                        { key: 'email', label: 'E-mail', placeholder: 'contato@seusite.com' },
-                        { key: 'phone', label: 'Telefone / WhatsApp', placeholder: '(11) 99999-9999' },
-                        { key: 'address', label: 'Endereço', placeholder: 'Rua X, 123 — Cidade/UF' },
-                        { key: 'url', label: 'URL do Site', placeholder: 'https://seusite.com.br' },
+                        { key: 'email',   label: 'E-mail',              placeholder: 'contato@seusite.com' },
+                        { key: 'phone',   label: 'Telefone / WhatsApp', placeholder: '(11) 99999-9999' },
+                        { key: 'address', label: 'Endereço',            placeholder: 'Rua X, 123 — Cidade/UF' },
                     ].map(f => (
                         <div key={f.key}>
                             <label className={labelClass}>{f.label}</label>
-                            <input type="text" placeholder={f.placeholder} value={config?.[f.key] || ''} onChange={e => setConfig({ ...config, [f.key]: e.target.value })} className={inputClass} />
+                            <input
+                                type="text"
+                                placeholder={f.placeholder}
+                                value={config?.contact?.[f.key] || ''}
+                                onChange={e => setConfig({ ...config, contact: { ...config.contact, [f.key]: e.target.value } })}
+                                className={inputClass}
+                            />
                         </div>
                     ))}
                 </div>

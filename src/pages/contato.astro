@@ -44,7 +44,7 @@ const contatoData = readData('contato.json');
               {siteConfig.contact?.address && (
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="icon-location-pin" style="font-size:2rem;color:#FE4F70;"></i>
+                    <i class="icon-location-pin" style="font-size:2rem;color:var(--walker-primary);"></i>
                     <h6 class="mt-2">{contatoData.cards?.addressLabel || "Endereço"}</h6>
                     <p class="mb-0" style="font-size:0.9rem;">{siteConfig.contact.address}</p>
                   </div>
@@ -53,7 +53,7 @@ const contatoData = readData('contato.json');
               {siteConfig.contact?.phone && (
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="icon-phone" style="font-size:2rem;color:#FE4F70;"></i>
+                    <i class="icon-phone" style="font-size:2rem;color:var(--walker-primary);"></i>
                     <h6 class="mt-2">{contatoData.cards?.phoneLabel || "Telefone"}</h6>
                     <p class="mb-0" style="font-size:0.9rem;">{siteConfig.contact.phone}</p>
                   </div>
@@ -62,7 +62,7 @@ const contatoData = readData('contato.json');
               {siteConfig.contact?.email && (
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="icon-envelope" style="font-size:2rem;color:#FE4F70;"></i>
+                    <i class="icon-envelope" style="font-size:2rem;color:var(--walker-primary);"></i>
                     <h6 class="mt-2">E-mail</h6>
                     <p class="mb-0" style="font-size:0.9rem;"><a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a></p>
                   </div>

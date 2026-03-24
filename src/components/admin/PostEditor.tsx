@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3 } from 'lucide-react';
+import { marked } from 'marked';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
 
@@ -49,7 +50,6 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                 if (catRes.status === 'fulfilled') { const p = JSON.parse(catRes.value.content); if (Array.isArray(p)) setDynamicCategories(p); }
 
                 if (isEditing && filePath) {
-                    const { marked } = await import('marked');
                     const fileData = await githubApi('read', filePath);
                     setFileSha(fileData.sha);
                     const text = fileData.content;
@@ -58,7 +58,7 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                         const fm = match[1];
                         const body = match[2].trim();
                         const extract = (key: string) => { const m = fm.match(new RegExp(`${key}:\\s*(?:"([^"]*)"|'([^']*)'|(.*))`)); return m ? (m[1] || m[2] || m[3] || '').trim() : ''; };
-                        const parsedHtml = await (marked as any).parse(body);
+                        const parsedHtml = await marked.parse(body);
                         setPost({
                             title: extract('title'), slug: filePath.split('/').pop()?.replace('.md', '') || '',
                             description: extract('description'), pubDate: extract('pubDate') ? formatDateForInput(extract('pubDate')) : new Date().toISOString().split('T')[0],
@@ -66,8 +66,7 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                             draft: extract('draft') === 'true', content: parsedHtml
                         });
                     } else {
-                        const { marked } = await import('marked');
-                        setPost(p => ({ ...p, content: (marked as any).parse(text), slug: filePath.split('/').pop()?.replace('.md', '') || '' }));
+                        setPost(p => ({ ...p, content: String(marked.parse(text)), slug: filePath.split('/').pop()?.replace('.md', '') || '' }));
                     }
                 }
             } catch (err: any) {
@@ -126,7 +125,8 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                 await githubApi('write', ghPath, { content: base64Content, isBase64: true, message: `Upload capa blog ${ghPath}` });
                 finalHeroImage = ghPath.replace('public', '');
             }
-            const finalHtmlContent = await extractAndUploadInlineImages(post.content);
+            const cleanedContent = post.content.replace(/&nbsp;/g, ' ').replace(/\u00A0/g, ' ');
+            const finalHtmlContent = await extractAndUploadInlineImages(cleanedContent);
             const markdown = `---\ntitle: "${post.title.replace(/"/g, '\\"')}"\ndescription: "${post.description.replace(/"/g, '\\"')}"\npubDate: "${post.pubDate}"\nheroImage: "${finalHeroImage}"\ncategory: "${post.category}"\nauthor: "${post.author}"\ndraft: ${post.draft}\n---\n${finalHtmlContent}`;
             const targetPath = `src/content/blog/${post.slug}.md`;
             const res = await githubApi('write', targetPath, { content: markdown, sha: fileSha || undefined, message: `CMS: ${isEditing ? 'Edição' : 'Criação'} do artigo ${post.slug}` });

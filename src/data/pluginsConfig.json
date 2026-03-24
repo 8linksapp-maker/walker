@@ -1,0 +1,42 @@
+{
+    "googleAnalytics": {
+        "measurementId": ""
+    },
+    "metaPixel": {
+        "pixelId": ""
+    },
+    "ai": {
+        "provider": "openai",
+        "apiKey": "",
+        "pexelsApiKey": ""
+    },
+    "searchConsole": {
+        "verificationTag": "",
+        "siteUrl": "",
+        "serviceAccountJson": ""
+    },
+    "emailList": {
+        "brevoApiKey": "",
+        "brevoListId": "",
+        "popup": {
+            "enabled": false,
+            "headline": "Não perca nenhum artigo!",
+            "subheadline": "Receba os melhores conteúdos direto no seu e-mail.",
+            "triggerType": "delay",
+            "triggerValue": 5,
+            "showOnce": true
+        },
+        "sidebar": {
+            "enabled": true,
+            "headline": "Newsletter",
+            "subheadline": "Junte-se a nossos leitores!"
+        },
+        "inline": {
+            "enabled": false,
+            "headline": "Gostando do conteúdo?",
+            "subheadline": "Receba artigos como este direto no seu e-mail.",
+            "position": 3
+        },
+        "sequences": []
+    }
+}

@@ -10,4 +10,9 @@ export default defineConfig({
         react(),
         tailwind({ applyBaseStyles: false }),
     ],
+    vite: {
+        optimizeDeps: {
+            include: ['marked'],
+        },
+    },
 });

@@ -142,6 +142,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Filtra arquivos protegidos (dados do usuário)
         const PROTECTED = ['src/data/', 'src/content/'];
+        // pluginsConfig.json é sempre protegido (configurações dos plugins)
         const safeFiles = files.filter(f => !PROTECTED.some(p => f.startsWith(p)));
         const skipped = files.filter(f => PROTECTED.some(p => f.startsWith(p)));
 

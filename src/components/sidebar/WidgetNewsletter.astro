@@ -11,17 +11,70 @@
   <p class="text-white/80 text-xs leading-relaxed mb-4">
     Receba os melhores artigos diretamente no seu e-mail.
   </p>
-  <form class="space-y-2" onsubmit="return false;">
+  <form id="newsletter-widget-form" class="space-y-2">
     <input
+      id="newsletter-widget-email"
       type="email"
       placeholder="Seu e-mail"
+      required
       class="w-full px-3 py-2.5 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/60 focus:outline-none focus:border-white/60 text-sm transition-colors"
     />
     <button
+      id="newsletter-widget-btn"
       type="submit"
       class="w-full py-2.5 rounded-xl bg-white text-primary-600 font-bold text-sm hover:bg-gray-50 transition-colors"
     >
       Inscrever-se
     </button>
+    <p id="newsletter-widget-msg" class="text-xs font-semibold mt-1 hidden"></p>
   </form>
 </div>
+
+<script>
+(function () {
+    const form = document.getElementById('newsletter-widget-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const emailInput = document.getElementById('newsletter-widget-email') as HTMLInputElement;
+        const btn = document.getElementById('newsletter-widget-btn') as HTMLButtonElement;
+        const msg = document.getElementById('newsletter-widget-msg') as HTMLElement;
+        const email = emailInput?.value?.trim();
+        if (!email) return;
+
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+        msg.classList.add('hidden');
+
+        try {
+            const res = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, source: 'widget' }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                msg.textContent = data.message || 'Inscrito com sucesso!';
+                msg.style.color = '#bbf7d0';
+                msg.classList.remove('hidden');
+                emailInput.value = '';
+                btn.textContent = 'Inscrito!';
+            } else {
+                msg.textContent = data.error || 'Erro ao inscrever.';
+                msg.style.color = '#fecaca';
+                msg.classList.remove('hidden');
+                btn.textContent = 'Inscrever-se';
+                btn.disabled = false;
+            }
+        } catch {
+            msg.textContent = 'Erro de rede. Tente novamente.';
+            msg.style.color = '#fecaca';
+            msg.classList.remove('hidden');
+            btn.textContent = 'Inscrever-se';
+            btn.disabled = false;
+        }
+    });
+})();
+</script>

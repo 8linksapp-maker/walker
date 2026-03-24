@@ -1,31 +1,33 @@
 {
-    "name": "Mundo Afora",
-    "description": "Inspire-se a explorar o mundo. Roteiros, dicas e histórias de quem viaja de verdade.",
-    "url": "https://mundoafora.com.br",
-    "author": "Equipe Mundo Afora",
-    "language": "pt-BR",
-    "logo": "",
-    "theme": {
-        "primary": "#FE4F70",
-        "primaryDark": "#203656",
-        "accent": "#FFA387",
-        "font": "poppins"
-    },
-    "social": {
-        "instagram": "https://instagram.com/mundoafora",
-        "twitter": "https://twitter.com/mundoafora",
-        "facebook": "https://facebook.com/mundoafora",
-        "pinterest": "https://pinterest.com/mundoafora",
-        "youtube": "https://youtube.com/@mundoafora"
-    },
-    "contact": {
-        "email": "contato@mundoafora.com.br",
-        "phone": "+55 11 97777-9999",
-        "address": "Rua das Viagens, 42 — São Paulo, SP",
-        "name": "Mundo Afora Comunicação Digital"
-    },
-    "legal": {
-        "terms_last_updated": "24 de Março de 2026",
-        "privacy_last_updated": "24 de Março de 2026"
-    }
+  "name": "Mundo Afora",
+  "description": "Inspire-se a explorar o mundo. Roteiros, dicas e histórias de quem viaja de verdade.",
+  "url": "https://mundoafora.com.br",
+  "author": "Equipe Mundo Afora",
+  "language": "pt-BR",
+  "logo": "",
+  "theme": {
+    "primary": "#FE4F70",
+    "accent": "#FFA387",
+    "font": "poppins",
+    "dark": "#203656"
+  },
+  "social": {
+    "instagram": "https://instagram.com/mundoafora",
+    "twitter": "https://twitter.com/mundoafora",
+    "facebook": "https://facebook.com/mundoafora",
+    "pinterest": "https://pinterest.com/mundoafora",
+    "youtube": "https://youtube.com/@mundoafora"
+  },
+  "contact": {
+    "email": "contato@mundoafora.com.br",
+    "phone": "+55 11 97777-9934",
+    "address": "Rua das Viagens, 42 — São Paulo, SP",
+    "name": "Mundo Afora Comunicação Digital"
+  },
+  "legal": {
+    "terms_last_updated": "24 de Março de 2026",
+    "privacy_last_updated": "24 de Março de 2026"
+  },
+  "phone": "21995211289",
+  "address": "Rua abraham medina, 355"
 }

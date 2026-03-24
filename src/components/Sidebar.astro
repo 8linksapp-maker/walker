@@ -4,6 +4,12 @@ import { readData } from '../lib/readData';
 const categoriesData = readData('categories.json', []);
 const siteConfig = readData('siteConfig.json');
 
+const pluginsConfig = readData('pluginsConfig.json', {}) as any;
+const sidebarConfig = pluginsConfig?.emailList?.sidebar;
+const sidebarEnabled = sidebarConfig?.enabled !== false;
+const sidebarHeadline = sidebarConfig?.headline || 'Newsletter';
+const sidebarSub = sidebarConfig?.subheadline || 'Junte-se a nossos leitores!';
+
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
@@ -30,7 +36,7 @@ const categoryCounts = allCategories.map(cat => ({
       {siteConfig.logo ? (
         <img src={siteConfig.logo} alt={siteConfig.name} class="mb-4" />
       ) : (
-        <h4 class="mb-4" style="font-family: Poppins, sans-serif; color: #203656;">{siteConfig.name}</h4>
+        <h4 class="mb-4" style="font-family: var(--walker-font-heading); color: var(--walker-dark);">{siteConfig.name}</h4>
       )}
       <p class="mb-4">{siteConfig.description}</p>
       <ul class="social-icons list-unstyled list-inline mb-0">
@@ -98,22 +104,25 @@ const categoryCounts = allCategories.map(cat => ({
   </div>
 
   <!-- widget newsletter -->
+  {sidebarEnabled && (
   <div class="widget rounded">
     <div class="widget-header text-center">
-      <h3 class="widget-title">Newsletter</h3>
+      <h3 class="widget-title">{sidebarHeadline}</h3>
       <img src="/images/wave.svg" class="wave" alt="wave" />
     </div>
     <div class="widget-content">
-      <span class="newsletter-headline text-center mb-3">Junte-se a nossos leitores!</span>
-      <form>
+      <span class="newsletter-headline text-center mb-3">{sidebarSub}</span>
+      <form id="sidebar-newsletter-form">
         <div class="mb-2">
-          <input class="form-control w-100 text-center" placeholder="Seu e-mail…" type="email">
+          <input id="sidebar-newsletter-input" class="form-control w-100 text-center" placeholder="Seu e-mail…" type="email" required>
         </div>
         <button class="btn btn-default btn-full" type="submit">Inscrever-se</button>
       </form>
+      <p id="sidebar-newsletter-msg" style="display:none; text-align:center; margin-top:0.5rem; font-size:0.8rem; font-weight:600;"></p>
       <span class="newsletter-privacy text-center mt-3">Ao se inscrever, você concorda com nossa <a href="/privacidade">Política de Privacidade</a></span>
     </div>
   </div>
+  )}
 
   <!-- widget post carousel -->
   {carouselPosts.length > 0 && (
@@ -174,3 +183,50 @@ const categoryCounts = allCategories.map(cat => ({
   </div>
 
 </div>
+
+<script>
+(function() {
+    document.getElementById('sidebar-newsletter-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const input = document.getElementById('sidebar-newsletter-input') as HTMLInputElement | null;
+        const btn = (e.currentTarget as HTMLFormElement).querySelector('button[type="submit"]') as HTMLButtonElement | null;
+        const msg = document.getElementById('sidebar-newsletter-msg') as HTMLElement | null;
+        const email = input?.value?.trim();
+        if (!email || !btn || !msg) return;
+
+        const originalText = btn.textContent;
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+        msg.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, source: 'widget' }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                msg.textContent = data.message || 'Inscrito com sucesso!';
+                msg.style.color = '#16a34a';
+                msg.style.display = 'block';
+                if (input) input.value = '';
+                btn.textContent = 'Inscrito!';
+            } else {
+                msg.textContent = data.error || 'Erro ao inscrever.';
+                msg.style.color = '#dc2626';
+                msg.style.display = 'block';
+                btn.textContent = originalText ?? 'Inscrever-se';
+                btn.disabled = false;
+            }
+        } catch {
+            msg.textContent = 'Erro de rede. Tente novamente.';
+            msg.style.color = '#dc2626';
+            msg.style.display = 'block';
+            btn.textContent = originalText ?? 'Inscrever-se';
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
