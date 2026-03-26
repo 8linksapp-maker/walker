@@ -14,12 +14,10 @@ function pluginsRepoUrl(path: string, token?: string): string {
     return `https://api.github.com/repos/${PLUGINS_REPO}/contents/${path}`;
 }
 
-async function fetchFromPluginsRepo(path: string, token: string): Promise<string> {
+// cms-plugins is public — no token needed for reads
+async function fetchFromPluginsRepo(path: string, _token?: string): Promise<string> {
     const res = await fetch(pluginsRepoUrl(path), {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/vnd.github+json',
-        },
+        headers: { Accept: 'application/vnd.github+json' },
     });
     if (!res.ok) throw new Error(`Erro ao buscar ${path} do cms-plugins: ${res.status}`);
     const data = await res.json() as { content: string };
@@ -108,16 +106,14 @@ export const GET: APIRoute = async () => {
         const localVersionsRaw = await readLocalFile('src/data/pluginVersions.json').catch(() => '{}');
         const localVersions: Record<string, string> = JSON.parse(localVersionsRaw);
 
-        const GITHUB_TOKEN = import.meta.env.GITHUB_TOKEN as string | undefined;
         let remoteRegistry: Record<string, { version: string; description: string }> = {};
 
-        if (GITHUB_TOKEN) {
-            try {
-                const raw = await fetchFromPluginsRepo('registry.json', GITHUB_TOKEN);
-                remoteRegistry = JSON.parse(raw);
-            } catch {
-                // graceful: treat all as up-to-date
-            }
+        try {
+            // cms-plugins is public — no token needed
+            const raw = await fetchFromPluginsRepo('registry.json');
+            remoteRegistry = JSON.parse(raw);
+        } catch {
+            // graceful: treat all as up-to-date
         }
 
         const plugins = Object.entries(remoteRegistry).length > 0
@@ -172,10 +168,11 @@ export const POST: APIRoute = async ({ request }) => {
         let walkerPaths: Record<string, any> = {};
 
         if (isProd) {
-            const raw = await fetchFromPluginsRepo(`plugins/${plugin}/plugin.json`, GITHUB_TOKEN!);
+            // cms-plugins is public — no token needed for reads
+            const raw = await fetchFromPluginsRepo(`plugins/${plugin}/plugin.json`);
             pluginJson = JSON.parse(raw);
             try {
-                const pathsRaw = await fetchFromPluginsRepo('templates/walker/paths.json', GITHUB_TOKEN!);
+                const pathsRaw = await fetchFromPluginsRepo('templates/walker/paths.json');
                 walkerPaths = JSON.parse(pathsRaw);
             } catch { /* no paths.json — skip slots/dest */ }
         } else {
@@ -206,9 +203,9 @@ export const POST: APIRoute = async ({ request }) => {
 
             if (isProd) {
                 try {
-                    content = await fetchFromPluginsRepo(overridePath, GITHUB_TOKEN!);
+                    content = await fetchFromPluginsRepo(overridePath);
                 } catch {
-                    content = await fetchFromPluginsRepo(`plugins/${plugin}/${file.src}`, GITHUB_TOKEN!);
+                    content = await fetchFromPluginsRepo(`plugins/${plugin}/${file.src}`);
                 }
                 const { sha } = await readWalkerFileGithub(file.dest, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!);
                 await writeWalkerFileGithub(
@@ -232,7 +229,7 @@ export const POST: APIRoute = async ({ request }) => {
         for (const page of adminEntries) {
             let content: string | null = null;
             if (isProd) {
-                content = await fetchFromPluginsRepo(`plugins/${plugin}/${page.src}`, GITHUB_TOKEN!);
+                content = await fetchFromPluginsRepo(`plugins/${plugin}/${page.src}`);
                 const { sha } = await readWalkerFileGithub(page.dest, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!);
                 await writeWalkerFileGithub(
                     page.dest, content, sha, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!,
