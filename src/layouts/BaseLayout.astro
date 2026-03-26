@@ -1,9 +1,8 @@
 ---
 import { readData } from '../lib/readData';
 import { getCollection } from 'astro:content';
-import GoogleAnalytics from '../plugins/google-analytics/GoogleAnalytics.astro';
-import MetaPixel from '../plugins/meta-pixel/MetaPixel.astro';
-import EmailPopup from '../plugins/email-list/EmailPopup.astro';
+import HeadPlugins from '../plugins/_slots/HeadPlugins.astro';
+import BodyEndPlugins from '../plugins/_slots/BodyEndPlugins.astro';
 
 const siteConfig = readData('siteConfig.json');
 const pluginsConfig = readData('pluginsConfig.json', {});
@@ -98,10 +97,8 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
       --walker-font-body: "${selectedFont.body}", sans-serif;
     }
   </style>`} />
-  <!-- Google Analytics (via plugin) -->
-  <GoogleAnalytics />
-  <!-- Meta Pixel (via plugin) -->
-  <MetaPixel />
+  <!-- Head plugins: GA, Meta Pixel, AdSense -->
+  <HeadPlugins />
 </head>
 
 <body class={bodyClass}>
@@ -294,8 +291,8 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
   </ul>
 </div>
 
-<!-- Email Popup -->
-<EmailPopup />
+<!-- Body-end plugins: EmailPopup, CookieConsent -->
+<BodyEndPlugins />
 
 <!-- SCRIPTS -->
 <script is:inline src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

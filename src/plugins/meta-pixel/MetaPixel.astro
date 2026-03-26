@@ -4,21 +4,23 @@
  *
  * Injeta o snippet do Meta Pixel no <head> de todas as páginas públicas.
  * Lê o pixelId de src/data/pluginsConfig.json via readData().
+ * Se cookieConsent.enabled for true, aguarda o evento 'cookies-accepted'
+ * ou verifica localStorage antes de carregar o script.
  * Se pixelId estiver vazio, não renderiza nada.
- *
- * Uso em BaseLayout.astro:
- *   import MetaPixel from '../plugins/meta-pixel/MetaPixel.astro';
- *   <MetaPixel />
  */
 import { readData } from '../../lib/readData';
 
 const pluginsConfig = readData('pluginsConfig.json', {}) as any;
 const pixelId: string = pluginsConfig?.metaPixel?.pixelId?.trim() || '';
+const requireConsent: boolean = pluginsConfig?.cookieConsent?.enabled !== false;
 ---
 
 {pixelId && (
-  <>
-    <script define:vars={{ pixelId }}>
+  <script define:vars={{ pixelId, requireConsent }}>
+  (function() {
+    function loadPixel() {
+      if (window.__fbq_loaded) return;
+      window.__fbq_loaded = true;
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -29,12 +31,13 @@ const pixelId: string = pluginsConfig?.metaPixel?.pixelId?.trim() || '';
       'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', pixelId);
       fbq('track', 'PageView');
-    </script>
-    <noscript>
-      <img height="1" width="1" style="display:none"
-        src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
-        alt=""
-      />
-    </noscript>
-  </>
+    }
+
+    if (!requireConsent || localStorage.getItem('cookies-accepted') === 'true') {
+      loadPixel();
+    } else {
+      window.addEventListener('cookies-accepted', loadPixel, { once: true });
+    }
+  })();
+  </script>
 )}

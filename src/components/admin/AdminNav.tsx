@@ -2,7 +2,7 @@ import React from 'react';
 import {
     LayoutDashboard, FileText, Tag, Users, Home, Info, Phone,
     Shield, Settings, LogOut, ChevronRight, ExternalLink, Navigation, ArrowUpCircle,
-    Sparkles, Upload, BarChart3, Search, Mail, Target
+    Sparkles, Package,
 } from 'lucide-react';
 
 interface NavItem {
@@ -25,6 +25,11 @@ const pageItems: NavItem[] = [
     { label: 'Sobre', href: '/admin/sobre', icon: Info, section: 'sobre' },
     { label: 'Contato', href: '/admin/contato', icon: Phone, section: 'contato' },
     { label: 'Privacidade & Termos', href: '/admin/legal', icon: Shield, section: 'legal' },
+];
+
+const pluginItems: NavItem[] = [
+    { label: 'Plugins', href: '/admin/plugins', icon: Sparkles, section: 'plugins' },
+    { label: 'Instalar / Atualizar', href: '/admin/plugin-updates', icon: Package, section: 'plugin-updates' },
 ];
 
 interface AdminNavProps {
@@ -65,15 +70,12 @@ export default function AdminNav({ activeSection = '', extraItems = [] }: AdminN
                     ))}
                 </div>
 
-                {/* Ferramentas */}
+                {/* Plugins */}
                 <div className="mb-6">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Ferramentas</p>
-                    <NavLink item={{ label: 'Gerar posts com IA', href: '/admin/ai', icon: Sparkles, section: 'ai' }} active={activeSection === 'ai'} />
-                    <NavLink item={{ label: 'Search Console', href: '/admin/search-console', icon: Search, section: 'search-console' }} active={activeSection === 'search-console'} />
-                    <NavLink item={{ label: 'Importar WordPress', href: '/admin/import-wp', icon: Upload, section: 'import-wp' }} active={activeSection === 'import-wp'} />
-                    <NavLink item={{ label: 'Google Analytics', href: '/admin/analytics', icon: BarChart3, section: 'analytics' }} active={activeSection === 'analytics'} />
-                    <NavLink item={{ label: 'Lista de Emails', href: '/admin/email-list', icon: Mail, section: 'email-list' }} active={activeSection === 'email-list'} />
-                    <NavLink item={{ label: 'Meta Pixel', href: '/admin/meta-pixel', icon: Target, section: 'meta-pixel' }} active={activeSection === 'meta-pixel'} />
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Plugins</p>
+                    {pluginItems.map(item => (
+                        <NavLink key={item.href} item={item} active={activeSection === item.section} />
+                    ))}
                 </div>
 
                 {/* Configurações */}

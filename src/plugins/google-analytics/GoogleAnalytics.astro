@@ -4,26 +4,39 @@
  *
  * Injeta o snippet gtag.js no <head> de todas as páginas públicas.
  * Lê o measurementId de src/data/pluginsConfig.json via readData().
+ * Se cookieConsent.enabled for true, aguarda o evento 'cookies-accepted'
+ * ou verifica localStorage antes de carregar o script.
  * Se measurementId estiver vazio, não renderiza nada.
- *
- * Uso em BaseLayout.astro:
- *   import GoogleAnalytics from '../plugins/google-analytics/GoogleAnalytics.astro';
- *   <GoogleAnalytics />
  */
 import { readData } from '../../lib/readData';
 
-const pluginsConfig = readData('pluginsConfig.json', { googleAnalytics: { measurementId: '' } });
+const pluginsConfig = readData('pluginsConfig.json', {}) as any;
 const measurementId: string = pluginsConfig?.googleAnalytics?.measurementId || '';
+const requireConsent: boolean = pluginsConfig?.cookieConsent?.enabled !== false;
 ---
 
 {measurementId && (
-  <>
-    <script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></script>
-    <script define:vars={{ measurementId }}>
+  <script define:vars={{ measurementId, requireConsent }}>
+  (function() {
+    function loadGA() {
+      if (window.__ga_loaded) return;
+      window.__ga_loaded = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+      document.head.appendChild(s);
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
       gtag('js', new Date());
       gtag('config', measurementId);
-    </script>
-  </>
+    }
+
+    if (!requireConsent || localStorage.getItem('cookies-accepted') === 'true') {
+      loadGA();
+    } else {
+      window.addEventListener('cookies-accepted', loadGA, { once: true });
+    }
+  })();
+  </script>
 )}

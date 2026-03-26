@@ -5,6 +5,48 @@
     "metaPixel": {
         "pixelId": ""
     },
+    "socialShare": {
+        "enabled": true,
+        "sectionTitle": "Compartilhe nas redes sociais",
+        "platforms": [
+            "facebook",
+            "twitter",
+            "whatsapp",
+            "linkedin",
+            "telegram",
+            "copy",
+            "pinterest"
+        ],
+        "style": "icon"
+    },
+    "cookieConsent": {
+        "enabled": true,
+        "headline": "Privacidade e Cookies",
+        "description": "Utilizamos cookies para melhorar sua experiência. Ao clicar em \"Aceitar\", você concorda com nossa política de privacidade.",
+        "buttonAccept": "Aceitar",
+        "buttonReject": "Ler Política",
+        "rejectUrl": "/privacidade",
+        "position": "bottom"
+    },
+    "seo": {
+        "enabled": true,
+        "orgName": "",
+        "orgLogo": "",
+        "sameAs": [],
+        "articleSchema": true,
+        "breadcrumbSchema": true,
+        "websiteSchema": true
+    },
+    "relatedPosts": {
+        "enabled": true,
+        "count": 3
+    },
+    "adsense": {
+        "publisherId": ""
+    },
+    "redirects": {
+        "enabled": true
+    },
     "ai": {
         "provider": "openai",
         "apiKey": "",
@@ -15,16 +57,28 @@
         "siteUrl": "",
         "serviceAccountJson": ""
     },
+    "affiliates": {
+        "enabled": true,
+        "amazonTag": "",
+        "defaultButtonText": "Ver na Amazon",
+        "buttonColor": "#FF9900",
+        "showPrices": true,
+        "showRatings": true,
+        "showProscons": true,
+        "showBadges": true,
+        "disclaimer": "Este artigo contém links de afiliado. Podemos receber uma comissão por compras feitas através deles.",
+        "showDisclaimer": true
+    },
     "emailList": {
         "brevoApiKey": "",
         "brevoListId": "",
         "popup": {
-            "enabled": false,
-            "headline": "Não perca nenhum artigo!",
+            "enabled": true,
+            "headline": "Inscreva-se na nossa Newsletter",
             "subheadline": "Receba os melhores conteúdos direto no seu e-mail.",
-            "triggerType": "delay",
-            "triggerValue": 5,
-            "showOnce": true
+            "triggerType": "scroll",
+            "triggerValue": 20,
+            "showOnce": false
         },
         "sidebar": {
             "enabled": true,
@@ -32,7 +86,7 @@
             "subheadline": "Junte-se a nossos leitores!"
         },
         "inline": {
-            "enabled": false,
+            "enabled": true,
             "headline": "Gostando do conteúdo?",
             "subheadline": "Receba artigos como este direto no seu e-mail.",
             "position": 3

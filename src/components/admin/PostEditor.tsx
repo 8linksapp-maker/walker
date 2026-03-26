@@ -3,6 +3,7 @@ import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3 }
 import { marked } from 'marked';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
+import SEOScoreWidget from '../../plugins/seo/SEOScoreWidget';
 
 interface PostEditorProps {
     filePath: string | null; // null = novo post
@@ -280,6 +281,14 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                         </label>
                         {pendingUploads['heroImage'] && <span className="text-[10px] text-amber-600 font-bold block mt-2">Upload pendente — será enviado ao salvar</span>}
                     </div>
+
+                    {/* SEO Score Widget */}
+                    <SEOScoreWidget
+                        title={post.title}
+                        description={post.description}
+                        heroImage={post.heroImage}
+                        content={post.content}
+                    />
                 </div>
             </div>
         </div>

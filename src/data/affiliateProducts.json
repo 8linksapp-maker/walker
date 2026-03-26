@@ -1,0 +1,29 @@
+[
+  {
+    "slug": "iphone15promax",
+    "title": "Iphone 15 Pro Max",
+    "description": "Iphone 15 pro Max, melhor telefone da categoria",
+    "image": "https://www.dxomark.com/wp-content/uploads/medias/post-155689/Apple-iPhone-15-Pro-Max_-blue-titanium_featured-image-packshot-review.jpg",
+    "amazonUrl": "https://www.amazon.com.br/Apple-iPhone-15-128-GB/dp/B0CP6CR795/ref=sr_1_5?crid=CRR1YBIT73AK&dib=eyJ2IjoiMSJ9.6bt4cXpyKhVm_7fv99YAiLZlLLla0Qgk-I5SawCDlkfO0IokqVdWD8XdXRVviBW8bmq6rgsRGy0xkZTd71-4U_NfIBPtfexV8jometgXvLl9-ZRhjGgqnxQBsjH0ajBKuwxsWxesnv56BynDGjngZ-MdnDixPa5eQ6sPn60VwXm6jI8XE5kj0gr3syx9MtJvaoSgB0XIH2G_Cyz8SH-r8F6txgTDfyvA9NyV6adyqphshYLqdFBO2XUx41Bg4ugMQkBoF2otnwnPad0kMFEnNSexCXeqyT2bpLLeCKMOcXU.B8OnQzU_FCoRRa8w5XVhq2kHnwIOsftZ80lnBQUqBik&dib_tag=se&keywords=iphone%2B15%2Bpro%2Bmax%2Bamazon%2Bnovo&qid=1774482725&sprefix=amazon%2Biphone%2B15%2Bpro%2Bmax%2Caps%2C206&sr=8-5&ufe=app_do%3Aamzn1.fos.9e6a115c-05b9-4b96-8e1c-b1f9ce2ac1a6&th=1",
+    "extraLinks": [
+      {
+        "label": "Mercado Livre",
+        "url": "https://www.amazon.com.br/Apple-iPhone-15-128-GB/dp/B0CP6CR795/ref=sr_1_5?crid=CRR1YBIT73AK&dib=eyJ2IjoiMSJ9.6bt4cXpyKhVm_7fv99YAiLZlLLla0Qgk-I5SawCDlkfO0IokqVdWD8XdXRVviBW8bmq6rgsRGy0xkZTd71-4U_NfIBPtfexV8jometgXvLl9-ZRhjGgqnxQBsjH0ajBKuwxsWxesnv56BynDGjngZ-MdnDixPa5eQ6sPn60VwXm6jI8XE5kj0gr3syx9MtJvaoSgB0XIH2G_Cyz8SH-r8F6txgTDfyvA9NyV6adyqphshYLqdFBO2XUx41Bg4ugMQkBoF2otnwnPad0kMFEnNSexCXeqyT2bpLLeCKMOcXU.B8OnQzU_FCoRRa8w5XVhq2kHnwIOsftZ80lnBQUqBik&dib_tag=se&keywords=iphone%2B15%2Bpro%2Bmax%2Bamazon%2Bnovo&qid=1774482725&sprefix=amazon%2Biphone%2B15%2Bpro%2Bmax%2Caps%2C206&sr=8-5&ufe=app_do%3Aamzn1.fos.9e6a115c-05b9-4b96-8e1c-b1f9ce2ac1a6&th=1"
+      }
+    ],
+    "price": "2000",
+    "originalPrice": "2300",
+    "rating": 4.5,
+    "pros": [
+      "Bateria infinita",
+      "Camera Profissional"
+    ],
+    "cons": [
+      "Preco alto"
+    ],
+    "badge": "Melhor Escolha",
+    "buttonText": "",
+    "enabled": true,
+    "id": "p_1774482766538"
+  }
+]

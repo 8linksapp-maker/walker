@@ -120,11 +120,11 @@ export default function MenuEditor() {
 
             {/* Info */}
             <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 text-sm text-violet-700">
-                <p className="font-semibold mb-1">Como funciona</p>
+                <p className="font-semibold mb-1">Dicas</p>
                 <ul className="space-y-0.5 text-violet-600 text-xs">
-                    <li>• Itens com <strong>Mostrar categorias</strong> exibem um dropdown com todas as categorias do blog</li>
-                    <li>• Use <strong>/pagina</strong> para links internos ou <strong>https://...</strong> para links externos</li>
-                    <li>• A ordem aqui é a ordem exibida no site</li>
+                    <li>• Itens com <strong>Mostrar categorias</strong> exibem uma lista suspensa com todas as categorias do blog</li>
+                    <li>• Para páginas do seu próprio site, escreva só o caminho (ex: <strong>/sobre</strong>). Para sites externos, cole o link completo</li>
+                    <li>• A ordem que aparece aqui é a ordem exibida no menu do site</li>
                 </ul>
             </div>
 

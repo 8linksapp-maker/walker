@@ -2,6 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import EmailInlineBanner from '../../plugins/email-list/EmailInlineBanner.astro';
+import AffiliateProducts from '../../plugins/affiliates/AffiliateProducts.astro';
+import PostSchemaPlugins from '../../plugins/_slots/PostSchemaPlugins.astro';
+import PostBottomPlugins from '../../plugins/_slots/PostBottomPlugins.astro';
+import PostAfterPlugins from '../../plugins/_slots/PostAfterPlugins.astro';
+import SocialShare from '../../plugins/social-share/SocialShare.astro';
 import { getCollection } from 'astro:content';
 import { readData } from '../../lib/readData';
 const authorsData = readData('authors.json', []);
@@ -29,9 +34,20 @@ const currentAuthor = authorsData.find((a: any) => a.id === post.data.author) ||
 };
 
 const categorySlug = post.data.category ? post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '';
+const siteConfig = readData('siteConfig.json', {}) as any;
+const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.description} image={post.data.heroImage} type="article">
+  <PostSchemaPlugins
+    title={post.data.title}
+    description={post.data.description || ''}
+    url={postUrl}
+    image={post.data.heroImage}
+    datePublished={post.data.pubDate instanceof Date ? post.data.pubDate.toISOString() : post.data.pubDate}
+    authorName={currentAuthor?.name}
+    category={post.data.category}
+  />
 
   <!-- section main content -->
   <section class="main-content mt-3">
@@ -86,6 +102,7 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
                 <EmailInlineBanner />
               </div>
             )}
+            <AffiliateProducts />
             <!-- post bottom section -->
             <div class="post-bottom">
               <div class="row d-flex align-items-center">
@@ -94,15 +111,8 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
                     <a href={`/categoria/${categorySlug}`} class="tag">#{post.data.category}</a>
                   )}
                 </div>
-                <div class="col-md-6 col-12">
-                  <ul class="social-icons list-unstyled list-inline mb-0 float-md-end">
-                    <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fab fa-pinterest"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="fab fa-telegram-plane"></i></a></li>
-                    <li class="list-inline-item"><a href="#"><i class="far fa-envelope"></i></a></li>
-                  </ul>
+                <div class="col-md-6 col-12 float-md-end">
+                  <PostBottomPlugins title={post.data.title} />
                 </div>
               </div>
             </div>
@@ -125,13 +135,16 @@ const categorySlug = post.data.category ? post.data.category.toLowerCase().repla
               <h4 class="name"><a href="#">{currentAuthor.name}</a></h4>
               {currentAuthor.role && <span style="color:var(--walker-primary);font-size:0.85rem;">{currentAuthor.role}</span>}
               {currentAuthor.bio && <p>{currentAuthor.bio}</p>}
-              <ul class="social-icons list-unstyled list-inline mb-0">
-                <li class="list-inline-item"><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                <li class="list-inline-item"><a href="#"><i class="fab fa-twitter"></i></a></li>
-                <li class="list-inline-item"><a href="#"><i class="fab fa-instagram"></i></a></li>
-              </ul>
+              <SocialShare title={post.data.title} context="author-box" />
             </div>
           </div>
+
+          <div class="spacer" data-height="50"></div>
+
+          <PostAfterPlugins
+            currentSlug={post.slug}
+            category={post.data.category || ''}
+          />
 
           <div class="spacer" data-height="50"></div>
 

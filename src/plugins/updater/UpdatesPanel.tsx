@@ -426,9 +426,9 @@ export default function UpdatesPanel() {
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Como funciona</p>
                     <div className="space-y-2.5">
                         {[
-                            { step: '1', text: 'Clique "Verificar" para checar se há nova versão' },
-                            { step: '2', text: 'Clique "Ver e Atualizar" → revise os arquivos que serão alterados' },
-                            { step: '3', text: 'Confirme → o Vercel faz deploy automático em minutos' },
+                            { step: '1', text: 'Clique em "Verificar" para ver se há novidades disponíveis' },
+                            { step: '2', text: 'Clique em "Ver e Atualizar" para revisar o que vai mudar' },
+                            { step: '3', text: 'Confirme — o site é atualizado automaticamente em alguns minutos' },
                         ].map(item => (
                             <div key={item.step} className="flex items-start gap-2.5">
                                 <span className="w-5 h-5 rounded-full bg-violet-100 text-violet-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">

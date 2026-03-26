@@ -1,10 +1,42 @@
 import { defineMiddleware } from 'astro:middleware';
 import { validateSession, COOKIE_NAME_EXPORT as COOKIE_NAME } from './lib/auth';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const ADMIN_SECRET = import.meta.env.ADMIN_SECRET;
 
+// Redirects cache (1 minute TTL)
+let redirectsCache: any[] | null = null;
+let redirectsCacheAt = 0;
+const CACHE_TTL = 60_000;
+
+function getRedirects(): any[] {
+    const now = Date.now();
+    if (redirectsCache && now - redirectsCacheAt < CACHE_TTL) return redirectsCache;
+    try {
+        const raw = readFileSync(resolve(process.cwd(), 'src/data/redirects.json'), 'utf-8');
+        redirectsCache = JSON.parse(raw);
+        redirectsCacheAt = now;
+        return redirectsCache!;
+    } catch {
+        redirectsCache = [];
+        redirectsCacheAt = now;
+        return [];
+    }
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
     const { pathname } = context.url;
+
+    // Check redirects for all public routes (before admin check)
+    if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/')) {
+        const redirects = getRedirects();
+        for (const r of redirects) {
+            if (r.enabled && r.from && r.to && r.from === pathname) {
+                return context.redirect(r.to, r.type || 301);
+            }
+        }
+    }
 
     // Rotas públicas: pass through
     if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
