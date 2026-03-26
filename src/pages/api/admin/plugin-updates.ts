@@ -6,7 +6,9 @@ import { PLUGINS_REPO } from '../../../lib/templateConfig';
 
 export const prerender = false;
 
-const PROJECT_ROOT = nodePath.resolve(fileURLToPath(import.meta.url), '../../../../../../');
+// admin/ → api/ → pages/ → src/ → walker (project root)
+const __dirname = nodePath.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = nodePath.resolve(__dirname, '../../../..');
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
