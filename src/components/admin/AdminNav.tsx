@@ -29,7 +29,7 @@ const pageItems: NavItem[] = [
 
 const pluginItems: NavItem[] = [
     { label: 'Plugins', href: '/admin/plugins', icon: Sparkles, section: 'plugins' },
-    { label: 'Instalar / Atualizar', href: '/admin/plugin-updates', icon: Package, section: 'plugin-updates' },
+    { label: 'Instalar Plugins', href: '/admin/plugin-updates', icon: Package, section: 'plugin-updates' },
 ];
 
 interface AdminNavProps {
@@ -82,7 +82,7 @@ export default function AdminNav({ activeSection = '', extraItems = [] }: AdminN
                 <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">Sistema</p>
                     <NavLink item={{ label: 'Configurações', href: '/admin/config', icon: Settings, section: 'config' }} active={activeSection === 'config'} />
-                    <NavLink item={{ label: 'Atualizações', href: '/admin/updates', icon: ArrowUpCircle, section: 'updates' }} active={activeSection === 'updates'} />
+                    <NavLink item={{ label: 'Atualizações', href: '/admin/system-updates', icon: ArrowUpCircle, section: 'updates' }} active={activeSection === 'updates'} />
                 </div>
             </nav>
 
