@@ -207,7 +207,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
         const env = getEnv();
         const body = await request.json() as {
-            action: 'update-all' | 'update-plugin' | 'update-core';
+            action: 'update-all' | 'update-plugin' | 'update-core' | 'restore-all';
             plugin?: string;
             releaseTag?: string;
         };
@@ -332,8 +332,23 @@ export const POST: APIRoute = async ({ request }) => {
             return newVersion;
         }
 
+        // ── Action: restore-all — reinstala TODOS os plugins ────────────
+        if (body.action === 'restore-all') {
+            let remoteRegistry: Record<string, { version: string }> = {};
+            try { remoteRegistry = JSON.parse(await fetchPluginsRepo('registry.json')); } catch {}
+
+            for (const [name] of Object.entries(remoteRegistry)) {
+                try {
+                    const v = await updatePlugin(name, true);
+                    results.push({ item: name, status: 'ok', detail: `→ v${v}` });
+                } catch (err: any) {
+                    results.push({ item: name, status: 'error', detail: err.message });
+                }
+            }
+        }
+
         // ── Action: update-all ──────────────────────────────────────────
-        if (body.action === 'update-all') {
+        else if (body.action === 'update-all') {
             // Step 1: Self-update — atualiza o próprio updater PRIMEIRO
             try {
                 await updatePlugin('updater', false);

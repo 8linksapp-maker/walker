@@ -181,6 +181,32 @@ export default function SystemUpdater() {
                 </button>
             )}
 
+            {/* Restore All — aparece quando há muitos plugins não registrados */}
+            {available.length > 5 && !results && (
+                <div className="bg-amber-50 rounded-2xl border border-amber-200 p-5">
+                    <div className="flex items-start gap-3 mb-3">
+                        <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold text-slate-800 text-sm">Plugins desconectados?</p>
+                            <p className="text-xs text-slate-500 mt-1">
+                                Seus plugins estão no site mas não aparecem como instalados. Clique abaixo para restaurar o registro de todos de uma vez.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => doUpdate('restore-all')}
+                        disabled={updating}
+                        className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white px-4 py-3 rounded-xl text-sm font-bold transition-all"
+                    >
+                        {updating && updateTarget === 'restore-all' ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Restaurando...</>
+                        ) : (
+                            <><Download className="w-4 h-4" /> Restaurar Todos os Plugins</>
+                        )}
+                    </button>
+                </div>
+            )}
+
             {totalUpdates === 0 && !results && (
                 <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-5 flex items-center gap-3">
                     <CheckCircle className="w-8 h-8 text-emerald-500 shrink-0" />
