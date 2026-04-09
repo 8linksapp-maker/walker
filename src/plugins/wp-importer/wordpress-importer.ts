@@ -132,10 +132,16 @@ async function loadCurrentAuthors(): Promise<any[]> {
 }
 
 async function loadExistingPostSlugs(): Promise<string[]> {
-    // Lê o diretório src/content/blog/ para saber quais slugs já existem
-    // Em dev mode, readFileFromRepo retorna null para diretórios — usamos abordagem simples
-    // Retorna lista vazia se não conseguir ler (o pior caso: duplicatas com sufixo numérico)
-    return [];
+    // Lê o índice de slugs de src/data/post-slugs.json (mantido pelo CMS)
+    // Fallback: retorna lista vazia (pior caso: duplicatas com sufixo numérico)
+    try {
+        const raw = await readFileFromRepo('src/data/post-slugs.json');
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
 }
 
 // ── Exportação principal ──────────────────────────────────────────────────────
@@ -151,6 +157,24 @@ export async function importWordPressXML(xmlContent: string): Promise<ImportResu
 
     try {
         if (!xmlContent?.trim()) throw new Error('XML vazio ou inválido');
+
+        // Verificar credenciais GitHub em ambiente serverless (produção)
+        const hasGitHubCreds = !!(
+            process.env.GITHUB_TOKEN?.trim() &&
+            process.env.GITHUB_OWNER?.trim() &&
+            process.env.GITHUB_REPO?.trim()
+        );
+        const isServerless = !!(process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+        if (isServerless && !hasGitHubCreds) {
+            result.success = false;
+            result.errors.push(
+                'Configuração necessária: as variáveis de ambiente GITHUB_TOKEN, GITHUB_OWNER e GITHUB_REPO ' +
+                'não estão configuradas. Acesse o painel do Vercel → Settings → Environment Variables e ' +
+                'adicione as três variáveis para habilitar o importador em produção.'
+            );
+            return result;
+        }
 
         const parser = new XMLParser({
             ignoreAttributes: false,
@@ -237,7 +261,8 @@ export async function importWordPressXML(xmlContent: string): Promise<ImportResu
         // ── Processar posts ─────────────────────────────────────────────────
 
         const items = Array.isArray(channel.item) ? channel.item : (channel.item ? [channel.item] : []);
-        const usedSlugs = new Set<string>();
+        const existingSlugs = await loadExistingPostSlugs();
+        const usedSlugs = new Set<string>(existingSlugs);
 
         for (const item of items) {
             try {
@@ -359,6 +384,172 @@ export async function importWordPressXML(xmlContent: string): Promise<ImportResu
             } catch (err: any) {
                 const title = typeof item.title === 'string' ? item.title : getValue(item.title);
                 result.posts.errors.push(`Erro ao processar post "${title}": ${err.message}`);
+                result.posts.skipped++;
+            }
+        }
+
+        return result;
+    } catch (err: any) {
+        result.success = false;
+        result.errors.push(`Erro fatal: ${err.message || String(err)}`);
+        return result;
+    }
+}
+
+// ── Import from pre-parsed data (client-side parsing) ────────────────────────
+
+interface ParsedPost {
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    status: string;
+    creator: string;
+    postDate: string;
+    category: string;
+    thumbnailUrl: string;
+    imageUrls: string[];
+}
+
+interface ParsedData {
+    posts: ParsedPost[];
+    authors: { login: string; displayName: string; firstName: string; lastName: string }[];
+    categories: string[];
+}
+
+export async function importParsedData(data: ParsedData): Promise<ImportResult> {
+    const result: ImportResult = {
+        success: true,
+        posts: { imported: 0, skipped: 0, errors: [], imagesImported: 0 },
+        authors: { imported: 0, skipped: 0 },
+        categories: { imported: 0, skipped: 0 },
+        errors: [],
+    };
+
+    try {
+        const hasGitHubCreds = !!(
+            process.env.GITHUB_TOKEN?.trim() &&
+            process.env.GITHUB_OWNER?.trim() &&
+            process.env.GITHUB_REPO?.trim()
+        );
+        const isServerless = !!(process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+        if (isServerless && !hasGitHubCreds) {
+            result.success = false;
+            result.errors.push(
+                'Configuração necessária: GITHUB_TOKEN, GITHUB_OWNER e GITHUB_REPO não estão configuradas.'
+            );
+            return result;
+        }
+
+        // ── Categorias ─────────────────────────────────────────────────
+        let currentCategories = await loadCurrentCategories();
+        for (const catName of data.categories) {
+            if (!catName || currentCategories.includes(catName)) {
+                result.categories.skipped++;
+                continue;
+            }
+            currentCategories.push(catName);
+            result.categories.imported++;
+        }
+        if (result.categories.imported > 0) {
+            await writeFileToRepo('src/data/categories.json', JSON.stringify(currentCategories, null, 2), {
+                message: 'CMS: Import WordPress — categorias',
+            });
+        }
+
+        // ── Autores ────────────────────────────────────────────────────
+        let currentAuthors = await loadCurrentAuthors();
+        const authorLoginToId = new Map<string, string>();
+        for (const author of data.authors) {
+            if (!author.login) continue;
+            const authorId = generateSlug(author.login);
+            authorLoginToId.set(author.login, authorId);
+            if (currentAuthors.some((a: any) => a.id === authorId)) {
+                result.authors.skipped++;
+                continue;
+            }
+            currentAuthors.push({
+                id: authorId,
+                name: author.displayName,
+                role: 'Autor',
+                avatar: '',
+                bio: `${author.firstName} ${author.lastName}`.trim() || author.displayName,
+            });
+            result.authors.imported++;
+        }
+        if (result.authors.imported > 0) {
+            await writeFileToRepo('src/data/authors.json', JSON.stringify(currentAuthors, null, 2), {
+                message: 'CMS: Import WordPress — autores',
+            });
+        }
+
+        // ── Posts ──────────────────────────────────────────────────────
+        const existingSlugs = await loadExistingPostSlugs();
+        const usedSlugs = new Set<string>(existingSlugs);
+
+        for (const post of data.posts) {
+            try {
+                let slug = post.slug || generateSlug(post.title);
+                if (!slug) { result.posts.skipped++; continue; }
+
+                let slugBase = slug;
+                let counter = 1;
+                while (usedSlugs.has(slug)) { slug = `${slugBase}-${counter++}`; }
+                usedSlugs.add(slug);
+
+                const authorId = post.creator ? (authorLoginToId.get(post.creator) || generateSlug(post.creator)) : undefined;
+
+                let pubDate: string | undefined;
+                if (post.postDate && post.status === 'publish') {
+                    try {
+                        const date = new Date(post.postDate.replace(' ', 'T'));
+                        if (!isNaN(date.getTime())) pubDate = date.toISOString().split('T')[0];
+                    } catch {}
+                }
+
+                // Thumbnail
+                let heroImage: string | undefined;
+                if (post.thumbnailUrl) {
+                    const localUrl = await saveImage(post.thumbnailUrl, slug);
+                    if (localUrl) { heroImage = localUrl; result.posts.imagesImported++; }
+                }
+
+                // Content images
+                let finalContent = post.content;
+                if (post.imageUrls.length > 0) {
+                    const imageUrlMap = new Map<string, string>();
+                    for (const imgUrl of post.imageUrls) {
+                        const local = await saveImage(imgUrl, slug);
+                        if (local) { imageUrlMap.set(imgUrl, local); result.posts.imagesImported++; }
+                    }
+                    if (imageUrlMap.size > 0) finalContent = replaceImageUrls(finalContent, imageUrlMap);
+                }
+
+                let description = '';
+                if (post.excerpt) description = htmlToText(post.excerpt).substring(0, 160);
+                if (!description && post.content) description = htmlToText(post.content).substring(0, 160);
+
+                const postFileContent = serializePost({
+                    title: post.title,
+                    slug,
+                    description,
+                    content: finalContent,
+                    heroImage: heroImage || '',
+                    category: post.category || '',
+                    author: authorId || '',
+                    pubDate: pubDate || new Date().toISOString().split('T')[0],
+                    draft: post.status === 'draft',
+                });
+
+                const ok = await writeFileToRepo(postPath(slug), postFileContent, {
+                    message: `CMS: Import WordPress — post "${post.title.substring(0, 50)}"`,
+                });
+
+                if (ok) { result.posts.imported++; }
+                else { result.posts.errors.push(`Erro ao salvar "${post.title}"`); result.posts.skipped++; }
+            } catch (err: any) {
+                result.posts.errors.push(`Erro ao processar "${post.title}": ${err.message}`);
                 result.posts.skipped++;
             }
         }

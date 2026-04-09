@@ -1,7 +1,8 @@
 /**
- * ImportPage.tsx — Plugin WP Importer (Walker)
+ * ImportPage.tsx — Plugin WP Importer
  *
- * UI React para importação de posts do WordPress via arquivo XML (WXR).
+ * Parseia XML do WordPress NO BROWSER (sem limite de upload do Vercel 4.5MB)
+ * e envia os dados processados como JSON ao servidor.
  */
 
 import { useState, useRef } from 'react';
@@ -16,9 +17,158 @@ interface ImportResult {
     errors: string[];
 }
 
+interface ParsedPost {
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    status: string;
+    creator: string;
+    postDate: string;
+    category: string;
+    thumbnailUrl: string;
+    imageUrls: string[];
+}
+
+interface ParsedData {
+    posts: ParsedPost[];
+    authors: { login: string; displayName: string; firstName: string; lastName: string }[];
+    categories: string[];
+}
+
+// ── XML parsing helpers (browser-side) ──────────────────────────────────────
+
+function getWpText(item: Element, tag: string): string {
+    // Try namespaced tags (wp:post_type, dc:creator, content:encoded, etc.)
+    const nsMap: Record<string, string> = {
+        'wp:': 'http://wordpress.org/export/',
+        'dc:': 'http://purl.org/dc/elements/1.1/',
+        'content:': 'http://purl.org/rss/1.0/modules/content/',
+        'excerpt:': 'http://wordpress.org/export/',
+    };
+
+    // Try direct tag name first
+    let el = item.getElementsByTagName(tag)[0];
+    if (el) return el.textContent?.trim() || '';
+
+    // Try with namespace
+    for (const [prefix, ns] of Object.entries(nsMap)) {
+        if (tag.startsWith(prefix)) {
+            el = item.getElementsByTagNameNS(ns, tag.replace(prefix, ''))[0];
+            if (el) return el.textContent?.trim() || '';
+        }
+    }
+    return '';
+}
+
+function extractImageUrls(html: string): string[] {
+    const urls: string[] = [];
+    const regex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    let m;
+    while ((m = regex.exec(html)) !== null) {
+        if (m[1] && !m[1].startsWith('data:')) urls.push(m[1]);
+    }
+    return [...new Set(urls)];
+}
+
+function generateSlug(str: string): string {
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function parseWordPressXML(xmlText: string): ParsedData {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+
+    const errors = doc.getElementsByTagName('parsererror');
+    if (errors.length > 0) throw new Error('XML inválido. Verifique se o arquivo foi exportado corretamente do WordPress.');
+
+    const channel = doc.getElementsByTagName('channel')[0];
+    if (!channel) throw new Error('Formato XML inválido: elemento channel não encontrado');
+
+    // Categories
+    const categories: string[] = [];
+    const wpCats = channel.getElementsByTagName('wp:category');
+    for (let i = 0; i < wpCats.length; i++) {
+        const name = getWpText(wpCats[i], 'wp:cat_name');
+        if (name) categories.push(name);
+    }
+
+    // Authors
+    const authors: ParsedData['authors'] = [];
+    const wpAuthors = channel.getElementsByTagName('wp:author');
+    for (let i = 0; i < wpAuthors.length; i++) {
+        const login = getWpText(wpAuthors[i], 'wp:author_login');
+        const displayName = getWpText(wpAuthors[i], 'wp:author_display_name') || login;
+        const firstName = getWpText(wpAuthors[i], 'wp:author_first_name');
+        const lastName = getWpText(wpAuthors[i], 'wp:author_last_name');
+        if (login) authors.push({ login, displayName, firstName, lastName });
+    }
+
+    // Posts
+    const posts: ParsedPost[] = [];
+    const items = channel.getElementsByTagName('item');
+    const allItems = Array.from(items); // keep for thumbnail lookup
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const postType = getWpText(item, 'wp:post_type');
+        if (postType !== 'post') continue;
+
+        const status = getWpText(item, 'wp:status');
+        if (status !== 'publish' && status !== 'draft') continue;
+
+        const title = getWpText(item, 'title') || 'Sem título';
+        const slug = getWpText(item, 'wp:post_name') || generateSlug(title);
+        const content = getWpText(item, 'content:encoded');
+        const excerpt = getWpText(item, 'excerpt:encoded');
+        const creator = getWpText(item, 'dc:creator');
+        const postDate = getWpText(item, 'wp:post_date');
+
+        // Category (first one)
+        let category = '';
+        const catEls = item.getElementsByTagName('category');
+        for (let c = 0; c < catEls.length; c++) {
+            if (catEls[c].getAttribute('domain') === 'category') {
+                category = catEls[c].textContent?.trim() || '';
+                if (category) break;
+            }
+        }
+
+        // Thumbnail URL via postmeta
+        let thumbnailUrl = '';
+        const postmetas = item.getElementsByTagName('wp:postmeta');
+        for (let m = 0; m < postmetas.length; m++) {
+            if (getWpText(postmetas[m], 'wp:meta_key') === '_thumbnail_id') {
+                const thumbId = getWpText(postmetas[m], 'wp:meta_value');
+                if (thumbId) {
+                    for (const att of allItems) {
+                        if (getWpText(att, 'wp:post_id') === thumbId && getWpText(att, 'wp:post_type') === 'attachment') {
+                            thumbnailUrl = getWpText(att, 'wp:attachment_url') ||
+                                att.getElementsByTagName('guid')[0]?.textContent?.trim() || '';
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
+        posts.push({
+            title, slug, content, excerpt, status, creator, postDate,
+            category, thumbnailUrl, imageUrls: extractImageUrls(content),
+        });
+    }
+
+    return { posts, authors, categories };
+}
+
+// ── Component ───────────────────────────────────────────────────────────────
+
 export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [importing, setImporting] = useState(false);
+    const [progress, setProgress] = useState('');
     const [result, setResult] = useState<ImportResult | null>(null);
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,16 +190,26 @@ export default function ImportPage() {
         setImporting(true);
         setError('');
         setResult(null);
-        triggerToast('Processando importação do WordPress...', 'progress', 20);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            // Step 1: Read & parse XML in browser
+            setProgress('Lendo arquivo XML...');
+            triggerToast('Lendo arquivo XML...', 'progress', 10);
+            const xmlText = await file.text();
 
+            setProgress('Processando posts, categorias e autores...');
+            triggerToast('Processando XML...', 'progress', 30);
+            const parsed = parseWordPressXML(xmlText);
+
+            setProgress(`Encontrados ${parsed.posts.length} posts, ${parsed.categories.length} categorias, ${parsed.authors.length} autores. Enviando...`);
+            triggerToast(`Enviando ${parsed.posts.length} posts ao servidor...`, 'progress', 50);
+
+            // Step 2: Send parsed data as JSON (much smaller than raw XML)
             const res = await fetch('/api/admin/plugins/import/wordpress', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
+                body: JSON.stringify(parsed),
             });
 
             const text = await res.text();
@@ -64,9 +224,7 @@ export default function ImportPage() {
                 );
             }
 
-            if (!res.ok) {
-                throw new Error(data.error || `Erro ${res.status}`);
-            }
+            if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
 
             setResult(data);
             if (data.success) {
@@ -79,6 +237,7 @@ export default function ImportPage() {
             triggerToast(`Erro: ${err.message}`, 'error');
         } finally {
             setImporting(false);
+            setProgress('');
         }
     };
 
@@ -141,7 +300,7 @@ export default function ImportPage() {
                         <>
                             <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                             <p className="font-medium text-slate-500 text-sm">Clique para selecionar o arquivo XML</p>
-                            <p className="text-xs text-slate-400 mt-1">Arquivo exportado do WordPress (.xml)</p>
+                            <p className="text-xs text-slate-400 mt-1">Arquivo exportado do WordPress (.xml) — sem limite de tamanho</p>
                         </>
                     )}
                 </div>
@@ -235,7 +394,7 @@ export default function ImportPage() {
             {importing && (
                 <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
                     <p className="text-sm text-violet-700 font-medium">
-                        Importando posts e baixando imagens... Isso pode levar alguns minutos dependendo do tamanho do arquivo.
+                        {progress || 'Importando posts e baixando imagens... Isso pode levar alguns minutos.'}
                     </p>
                 </div>
             )}

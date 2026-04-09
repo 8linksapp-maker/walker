@@ -1,12 +1,13 @@
 /**
- * api/admin/plugins/import/wordpress.ts — Walker
+ * wordpress-api.ts — API endpoint for WP Importer
  *
- * POST — Recebe arquivo XML do WordPress e importa posts, categorias e autores.
+ * Aceita JSON (dados parseados no browser, sem limite de tamanho)
+ * ou FormData (legado, limitado a 4.5MB pelo Vercel).
  */
 
 import type { APIRoute } from 'astro';
 import { validateSession } from '../../../../../lib/auth';
-import { importWordPressXML } from '../../../../../plugins/wp-importer/wordpress-importer';
+import { importWordPressXML, importParsedData } from '../../../../../plugins/wp-importer/wordpress-importer';
 
 export const prerender = false;
 
@@ -21,7 +22,31 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Não autorizado' }), { status: 401 });
         }
 
-        // Recebe o arquivo XML
+        const contentType = request.headers.get('content-type') || '';
+
+        // ── JSON mode (client-side parsing, no size limit) ──────────
+        if (contentType.includes('application/json')) {
+            const data = await request.json();
+
+            if (!data.posts || !Array.isArray(data.posts)) {
+                return new Response(JSON.stringify({ error: 'Dados inválidos.' }), {
+                    status: 400, headers: { 'Content-Type': 'application/json' },
+                });
+            }
+
+            console.log(`[WP Import] JSON mode: ${data.posts.length} posts, ${data.categories?.length || 0} categorias, ${data.authors?.length || 0} autores`);
+
+            const result = await importParsedData(data);
+
+            console.log(`[WP Import] Concluído: ${result.posts.imported} posts, ${result.authors.imported} autores, ${result.categories.imported} categorias`);
+
+            return new Response(JSON.stringify(result), {
+                status: result.success ? 200 : 422,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        // ── FormData mode (legacy, file upload) ─────────────────────
         const formData = await request.formData();
         const file = formData.get('file') as File | null;
 
@@ -39,18 +64,15 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         const xmlContent = await file.text();
-
         if (!xmlContent?.trim()) {
             return new Response(JSON.stringify({ error: 'Arquivo XML vazio.' }), {
                 status: 400, headers: { 'Content-Type': 'application/json' },
             });
         }
 
-        console.log(`[WP Import] Iniciando importação de ${filename} (${xmlContent.length} chars)`);
+        console.log(`[WP Import] FormData mode: ${filename} (${xmlContent.length} chars)`);
 
         const result = await importWordPressXML(xmlContent);
-
-        console.log(`[WP Import] Concluído: ${result.posts.imported} posts, ${result.authors.imported} autores, ${result.categories.imported} categorias`);
 
         return new Response(JSON.stringify(result), {
             status: result.success ? 200 : 422,

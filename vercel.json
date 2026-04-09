@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/admin/plugins/import/wordpress.ts": {
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/process-sequences",
