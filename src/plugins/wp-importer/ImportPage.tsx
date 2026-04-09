@@ -185,6 +185,29 @@ export default function ImportPage() {
         setResult(null);
     };
 
+    const BATCH_SIZE = 10;
+
+    const sendBatch = async (data: ParsedData): Promise<ImportResult> => {
+        const res = await fetch('/api/admin/plugins/import/wordpress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(data),
+        });
+        const text = await res.text();
+        try {
+            const parsed = JSON.parse(text);
+            if (!res.ok) throw new Error(parsed.error || `Erro ${res.status}`);
+            return parsed;
+        } catch {
+            throw new Error(
+                res.status === 401
+                    ? 'Sessão expirada. Faça login novamente.'
+                    : `Resposta inesperada do servidor (${res.status}). Tente recarregar a página.`
+            );
+        }
+    };
+
     const handleImport = async () => {
         if (!file) { setError('Selecione um arquivo XML.'); return; }
         setImporting(true);
@@ -201,34 +224,56 @@ export default function ImportPage() {
             triggerToast('Processando XML...', 'progress', 30);
             const parsed = parseWordPressXML(xmlText);
 
-            setProgress(`Encontrados ${parsed.posts.length} posts, ${parsed.categories.length} categorias, ${parsed.authors.length} autores. Enviando...`);
-            triggerToast(`Enviando ${parsed.posts.length} posts ao servidor...`, 'progress', 50);
+            const totalPosts = parsed.posts.length;
+            setProgress(`Encontrados ${totalPosts} posts, ${parsed.categories.length} categorias, ${parsed.authors.length} autores.`);
 
-            // Step 2: Send parsed data as JSON (much smaller than raw XML)
-            const res = await fetch('/api/admin/plugins/import/wordpress', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(parsed),
-            });
+            // Step 2: Send in batches (categories + authors in first batch, posts split in chunks)
+            const totalResult: ImportResult = {
+                success: true,
+                posts: { imported: 0, skipped: 0, errors: [], imagesImported: 0 },
+                authors: { imported: 0, skipped: 0 },
+                categories: { imported: 0, skipped: 0 },
+                errors: [],
+            };
 
-            const text = await res.text();
-            let data: ImportResult & { error?: string };
-            try {
-                data = JSON.parse(text);
-            } catch {
-                throw new Error(
-                    res.status === 401
-                        ? 'Sessão expirada. Faça login novamente.'
-                        : `Resposta inesperada do servidor (${res.status}). Tente recarregar a página.`
-                );
+            const batches: ParsedData[] = [];
+            for (let i = 0; i < totalPosts; i += BATCH_SIZE) {
+                batches.push({
+                    posts: parsed.posts.slice(i, i + BATCH_SIZE),
+                    // Only send authors + categories in the first batch
+                    authors: i === 0 ? parsed.authors : [],
+                    categories: i === 0 ? parsed.categories : [],
+                });
+            }
+            // Edge case: no posts but has categories/authors
+            if (batches.length === 0) {
+                batches.push({ posts: [], authors: parsed.authors, categories: parsed.categories });
             }
 
-            if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+            for (let b = 0; b < batches.length; b++) {
+                const pct = Math.round(40 + (b / batches.length) * 55);
+                const from = b * BATCH_SIZE + 1;
+                const to = Math.min((b + 1) * BATCH_SIZE, totalPosts);
+                setProgress(`Importando posts ${from}-${to} de ${totalPosts}...`);
+                triggerToast(`Lote ${b + 1}/${batches.length} (posts ${from}-${to})`, 'progress', pct);
 
-            setResult(data);
-            if (data.success) {
-                triggerToast(`Importação concluída! ${data.posts.imported} posts importados.`, 'success');
+                const batchResult = await sendBatch(batches[b]);
+
+                totalResult.posts.imported += batchResult.posts.imported;
+                totalResult.posts.skipped += batchResult.posts.skipped;
+                totalResult.posts.imagesImported += batchResult.posts.imagesImported;
+                totalResult.posts.errors.push(...batchResult.posts.errors);
+                totalResult.authors.imported += batchResult.authors.imported;
+                totalResult.authors.skipped += batchResult.authors.skipped;
+                totalResult.categories.imported += batchResult.categories.imported;
+                totalResult.categories.skipped += batchResult.categories.skipped;
+                totalResult.errors.push(...batchResult.errors);
+                if (!batchResult.success) totalResult.success = false;
+            }
+
+            setResult(totalResult);
+            if (totalResult.success) {
+                triggerToast(`Importação concluída! ${totalResult.posts.imported} posts importados.`, 'success');
             } else {
                 triggerToast('Importação concluída com erros. Verifique os detalhes.', 'info');
             }
