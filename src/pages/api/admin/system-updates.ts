@@ -288,7 +288,7 @@ export const POST: APIRoute = async ({ request }) => {
             // Fetch plugin.json + paths.json from cms-plugins
             const pluginJson = JSON.parse(await fetchPluginsRepo(`plugins/${pluginName}/plugin.json`));
             let walkerPaths: Record<string, any> = {};
-            try { walkerPaths = JSON.parse(await fetchPluginsRepo('templates/walker/paths.json')); } catch {}
+            try { walkerPaths = JSON.parse(await fetchPluginsRepo('templates/${TEMPLATE_REPO.split('/').pop() || 'walker'}/paths.json')); } catch {}
 
             const mapping = walkerPaths[pluginName] ?? {};
             const fileEntries: { src: string; dest: string }[] = mapping.files ?? [];
@@ -297,7 +297,7 @@ export const POST: APIRoute = async ({ request }) => {
 
             // Copy files
             for (const file of [...fileEntries, ...adminEntries]) {
-                const overridePath = `templates/walker/${pluginName}/${file.src}`;
+                const overridePath = `templates/${TEMPLATE_REPO.split('/').pop() || 'walker'}/${pluginName}/${file.src}`;
                 let content: string;
                 try {
                     content = await fetchPluginsRepo(overridePath);

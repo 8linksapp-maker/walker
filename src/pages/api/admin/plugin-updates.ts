@@ -2,7 +2,9 @@ import type { APIRoute } from 'astro';
 import fs from 'node:fs/promises';
 import nodePath from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PLUGINS_REPO } from '../../../lib/templateConfig';
+import { PLUGINS_REPO, TEMPLATE_REPO } from '../../../lib/templateConfig';
+
+const THEME_NAME = TEMPLATE_REPO.split('/').pop() || 'walker';
 
 export const prerender = false;
 
@@ -180,7 +182,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const isProd = !!(GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO);
 
-        // 1. Fetch plugin.json + templates/walker/paths.json from cms-plugins
+        // 1. Fetch plugin.json + templates/${THEME_NAME}/paths.json from cms-plugins
         let pluginJson: any;
         let walkerPaths: Record<string, any> = {};
 
@@ -189,7 +191,7 @@ export const POST: APIRoute = async ({ request }) => {
             const raw = await fetchFromPluginsRepo(`plugins/${plugin}/plugin.json`);
             pluginJson = JSON.parse(raw);
             try {
-                const pathsRaw = await fetchFromPluginsRepo('templates/walker/paths.json');
+                const pathsRaw = await fetchFromPluginsRepo(`templates/${THEME_NAME}/paths.json`);
                 walkerPaths = JSON.parse(pathsRaw);
             } catch { /* no paths.json — skip slots/dest */ }
         } else {
@@ -215,7 +217,7 @@ export const POST: APIRoute = async ({ request }) => {
         // 2. Copy plugin files
         for (const file of fileEntries) {
             // Check template override first
-            const overridePath = `templates/walker/${plugin}/${file.src}`;
+            const overridePath = `templates/${THEME_NAME}/${plugin}/${file.src}`;
             let content: string | null = null;
 
             if (isProd) {
