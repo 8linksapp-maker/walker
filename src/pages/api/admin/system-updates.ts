@@ -138,6 +138,39 @@ function appendToSlotAggregator(fileContent: string, importLine: string, compone
     return (before + importLine + '\n' + after).trimEnd() + '\n' + componentLine + '\n';
 }
 
+// ─── Auto-detect: lista pastas em src/plugins/ para saber o que existe ─────
+
+async function listInstalledPluginFolders(env: ReturnType<typeof getEnv>): Promise<Set<string>> {
+    const folders = new Set<string>();
+    if (env.isProd) {
+        try {
+            const url = `https://api.github.com/repos/${env.owner}/${env.repo}/contents/src/plugins`;
+            const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${env.token}`, Accept: 'application/vnd.github+json' },
+            });
+            if (res.ok) {
+                const items = await res.json() as { name: string; type: string }[];
+                for (const item of items) {
+                    if (item.type === 'dir' && !item.name.startsWith('_')) {
+                        folders.add(item.name);
+                    }
+                }
+            }
+        } catch { /* fallback to empty */ }
+    } else {
+        try {
+            const fs = await import('node:fs/promises');
+            const nodePath = await import('node:path');
+            const dir = nodePath.resolve(process.cwd(), 'src/plugins');
+            const entries = await fs.readdir(dir, { withFileTypes: true });
+            for (const e of entries) {
+                if (e.isDirectory() && !e.name.startsWith('_')) folders.add(e.name);
+            }
+        } catch { /* fallback */ }
+    }
+    return folders;
+}
+
 // ─── GET ────────────────────────────────────────────────────────────────────
 
 export const GET: APIRoute = async () => {
@@ -154,6 +187,42 @@ export const GET: APIRoute = async () => {
             remoteRegistry = JSON.parse(await fetchPluginsRepo('registry.json'));
         } catch { /* treat all as up-to-date */ }
 
+        // 2. Auto-detect: verificar quais plugins realmente existem no repo
+        const existingFolders = await listInstalledPluginFolders(env);
+
+        // 3. Auto-heal: se um plugin existe no repo mas não está no pluginVersions, registra
+        let needsHeal = false;
+        for (const [name, info] of Object.entries(remoteRegistry)) {
+            if (!localVersions[name] && existingFolders.has(name)) {
+                localVersions[name] = info.version;
+                needsHeal = true;
+            }
+        }
+
+        // Auto-heal: escreve pluginVersions corrigido + pluginRegistry se necessário
+        if (needsHeal) {
+            try {
+                await writeDataJson('src/data/pluginVersions.json', localVersions,
+                    'CMS: auto-heal pluginVersions (detectou plugins existentes)', env);
+
+                // Também reconstruir pluginRegistry.json
+                const registry: any[] = [];
+                for (const [name, info] of Object.entries(remoteRegistry)) {
+                    if (localVersions[name]) {
+                        try {
+                            const pj = JSON.parse(await fetchPluginsRepo(`plugins/${name}/plugin.json`));
+                            registry.push({ name, ...pj.hub });
+                        } catch {
+                            registry.push({ name, label: name, description: info.description,
+                                icon: 'Package', color: 'text-slate-600', bg: 'bg-slate-50', href: '/admin/plugins' });
+                        }
+                    }
+                }
+                await writeDataJson('src/data/pluginRegistry.json', registry,
+                    'CMS: auto-heal pluginRegistry', env);
+            } catch { /* best-effort heal */ }
+        }
+
         const plugins = Object.entries(remoteRegistry).map(([name, info]) => {
             const installed = localVersions[name] ?? null;
             return {
@@ -166,7 +235,7 @@ export const GET: APIRoute = async () => {
             };
         });
 
-        // 2. Core/template version
+        // 4. Core/template version
         let core = { current: '1.0.0', latest: '1.0.0', hasUpdate: false, releaseTag: '', releaseName: '', releaseNotes: '', releaseUrl: '', publishedAt: '' };
         const versionData = await readDataJson<any>('src/data/version.json', {}, env);
         core.current = versionData.version || '1.0.0';
@@ -189,11 +258,11 @@ export const GET: APIRoute = async () => {
             } catch { /* can't check */ }
         }
 
-        // 3. Summary
+        // 5. Summary
         const pluginUpdates = plugins.filter(p => p.hasUpdate).length;
         const totalUpdates = pluginUpdates + (core.hasUpdate ? 1 : 0);
 
-        return new Response(JSON.stringify({ core, plugins, totalUpdates }), {
+        return new Response(JSON.stringify({ core, plugins, totalUpdates, healed: needsHeal }), {
             status: 200, headers: { 'Content-Type': 'application/json' },
         });
     } catch (err: any) {
