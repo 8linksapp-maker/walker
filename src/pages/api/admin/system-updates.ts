@@ -332,18 +332,35 @@ export const POST: APIRoute = async ({ request }) => {
             return newVersion;
         }
 
-        // ── Action: restore-all — reinstala TODOS os plugins ────────────
+        // ── Action: restore-all — restaura registros sem reinstalar arquivos
         if (body.action === 'restore-all') {
-            let remoteRegistry: Record<string, { version: string }> = {};
+            let remoteRegistry: Record<string, { version: string; description: string }> = {};
             try { remoteRegistry = JSON.parse(await fetchPluginsRepo('registry.json')); } catch {}
 
-            for (const [name] of Object.entries(remoteRegistry)) {
+            // 1. Rebuild pluginVersions.json com todos os plugins
+            const versions: Record<string, string> = {};
+            const registry: any[] = [];
+
+            for (const [name, info] of Object.entries(remoteRegistry)) {
+                versions[name] = info.version;
+
+                // Fetch hub info do plugin.json para o pluginRegistry
                 try {
-                    const v = await updatePlugin(name, true);
-                    results.push({ item: name, status: 'ok', detail: `→ v${v}` });
-                } catch (err: any) {
-                    results.push({ item: name, status: 'error', detail: err.message });
+                    const pj = JSON.parse(await fetchPluginsRepo(`plugins/${name}/plugin.json`));
+                    registry.push({ name, ...pj.hub });
+                } catch {
+                    registry.push({ name, label: name, description: info.description, icon: 'Package', color: 'text-slate-600', bg: 'bg-slate-50', href: '/admin/plugins' });
                 }
+            }
+
+            // 2. Escreve os 2 arquivos de dados (1 deploy só)
+            try {
+                await writeDataJson('src/data/pluginVersions.json', versions, 'CMS: restore all plugin versions', env);
+                await writeDataJson('src/data/pluginRegistry.json', registry, 'CMS: restore plugin registry', env);
+                results.push({ item: 'pluginVersions.json', status: 'ok', detail: `${Object.keys(versions).length} plugins` });
+                results.push({ item: 'pluginRegistry.json', status: 'ok', detail: `${registry.length} entradas` });
+            } catch (err: any) {
+                results.push({ item: 'restore', status: 'error', detail: err.message });
             }
         }
 
