@@ -29,7 +29,6 @@ const pageItems: NavItem[] = [
 
 const pluginItems: NavItem[] = [
     { label: 'Plugins', href: '/admin/plugins', icon: Sparkles, section: 'plugins' },
-    { label: 'Instalar Plugins', href: '/admin/plugin-updates', icon: Package, section: 'plugin-updates' },
 ];
 
 interface AdminNavProps {
