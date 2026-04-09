@@ -49,9 +49,20 @@ export default function ImportPage() {
             const res = await fetch('/api/admin/plugins/import/wordpress', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
             });
 
-            const data: ImportResult & { error?: string } = await res.json();
+            const text = await res.text();
+            let data: ImportResult & { error?: string };
+            try {
+                data = JSON.parse(text);
+            } catch {
+                throw new Error(
+                    res.status === 401
+                        ? 'Sessão expirada. Faça login novamente.'
+                        : `Resposta inesperada do servidor (${res.status}). Tente recarregar a página.`
+                );
+            }
 
             if (!res.ok) {
                 throw new Error(data.error || `Erro ${res.status}`);

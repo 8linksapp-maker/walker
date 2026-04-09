@@ -105,7 +105,22 @@ const SLOT_FILES: Record<string, string> = {
 
 export const GET: APIRoute = async () => {
     try {
-        const localVersionsRaw = await readLocalFile('src/data/pluginVersions.json').catch(() => '{}');
+        const GITHUB_TOKEN = import.meta.env.GITHUB_TOKEN as string | undefined;
+        const GITHUB_OWNER = import.meta.env.GITHUB_OWNER as string | undefined;
+        const GITHUB_REPO  = import.meta.env.GITHUB_REPO  as string | undefined;
+        const isProd = !!(GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO);
+
+        let localVersionsRaw = '{}';
+        if (isProd) {
+            try {
+                const { content } = await readWalkerFileGithub(
+                    'src/data/pluginVersions.json', GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!
+                );
+                if (content) localVersionsRaw = content;
+            } catch { /* fallback to empty */ }
+        } else {
+            localVersionsRaw = await readLocalFile('src/data/pluginVersions.json').catch(() => '{}');
+        }
         const localVersions: Record<string, string> = JSON.parse(localVersionsRaw);
 
         let remoteRegistry: Record<string, { version: string; description: string }> = {};
@@ -246,7 +261,15 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 4. Update pluginVersions.json
         const versionsPath = 'src/data/pluginVersions.json';
-        const versionsRaw = await readLocalFile(versionsPath).catch(() => '{}');
+        let versionsRaw = '{}';
+        if (isProd) {
+            try {
+                const { content } = await readWalkerFileGithub(versionsPath, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!);
+                if (content) versionsRaw = content;
+            } catch { /* fallback */ }
+        } else {
+            versionsRaw = await readLocalFile(versionsPath).catch(() => '{}');
+        }
         const versions: Record<string, string> = JSON.parse(versionsRaw);
         versions[plugin] = pluginJson.version;
 
@@ -266,7 +289,15 @@ export const POST: APIRoute = async ({ request }) => {
             // 5a. Merge configDefaults into pluginsConfig.json
             if (pluginJson.configDefaults && Object.keys(pluginJson.configDefaults).length > 0) {
                 const configPath = 'src/data/pluginsConfig.json';
-                const configRaw = await readLocalFile(configPath).catch(() => '{}');
+                let configRaw = '{}';
+                if (isProd) {
+                    try {
+                        const { content } = await readWalkerFileGithub(configPath, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!);
+                        if (content) configRaw = content;
+                    } catch { /* fallback */ }
+                } else {
+                    configRaw = await readLocalFile(configPath).catch(() => '{}');
+                }
                 const config: Record<string, any> = JSON.parse(configRaw);
                 for (const [key, val] of Object.entries(pluginJson.configDefaults as Record<string, any>)) {
                     if (!(key in config)) config[key] = val;
@@ -285,7 +316,15 @@ export const POST: APIRoute = async ({ request }) => {
 
             // 5b. Add entry to pluginRegistry.json
             const registryPath = 'src/data/pluginRegistry.json';
-            const regRaw = await readLocalFile(registryPath).catch(() => '[]');
+            let regRaw = '[]';
+            if (isProd) {
+                try {
+                    const { content } = await readWalkerFileGithub(registryPath, GITHUB_TOKEN!, GITHUB_OWNER!, GITHUB_REPO!);
+                    if (content) regRaw = content;
+                } catch { /* fallback */ }
+            } else {
+                regRaw = await readLocalFile(registryPath).catch(() => '[]');
+            }
             const reg: any[] = JSON.parse(regRaw);
             if (!reg.find((r: any) => r.name === plugin)) {
                 reg.push({ name: plugin, ...pluginJson.hub });
