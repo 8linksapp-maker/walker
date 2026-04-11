@@ -96,16 +96,13 @@ export default function AdminNav({ activeSection = '', extraItems = [] }: AdminN
                     <ExternalLink className="w-4 h-4 shrink-0 group-hover:text-violet-600" />
                     <span className="text-sm font-medium">Ver site</span>
                 </a>
-                <button
-                    onClick={async () => {
-                        await fetch('/api/admin/logout', { method: 'POST' });
-                        window.location.href = '/admin/login';
-                    }}
+                <a
+                    href="/api/admin/logout"
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all group"
                 >
                     <LogOut className="w-4 h-4 shrink-0 group-hover:text-red-500" />
                     <span className="text-sm font-medium">Sair</span>
-                </button>
+                </a>
             </div>
         </aside>
     );
