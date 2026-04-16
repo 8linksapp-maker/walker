@@ -37,14 +37,14 @@ export default function PostsManager() {
 
             if (authRes.status === 'fulfilled' && authRes.value?.content) {
                 try {
-                    const parsed = JSON.parse(authRes.value.content);
+                    const parsed = JSON.parse(authRes.value?.content || "{}");
                     if (Array.isArray(parsed)) setAuthors(parsed);
                 } catch {}
             }
 
             if (catRes.status === 'fulfilled' && catRes.value?.content) {
                 try {
-                    const parsedCats = JSON.parse(catRes.value.content);
+                    const parsedCats = JSON.parse(catRes.value?.content || "{}");
                     if (Array.isArray(parsedCats)) parsedCats.forEach((c: string) => allCategories.add(c));
                 } catch {}
             }

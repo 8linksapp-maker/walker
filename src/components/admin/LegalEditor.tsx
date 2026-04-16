@@ -23,8 +23,8 @@ export default function LegalEditor() {
                     githubApi('read', 'src/data/privacy.json'),
                     githubApi('read', 'src/data/terms.json'),
                 ]);
-                if (privRes.status === 'fulfilled') { setPrivacyData(JSON.parse(privRes.value.content)); setPrivacySha(privRes.value.sha); }
-                if (termsRes.status === 'fulfilled') { setTermsData(JSON.parse(termsRes.value.content)); setTermsSha(termsRes.value.sha); }
+                if (privRes.status === 'fulfilled') { setPrivacyData(JSON.parse(privRes.value?.content || "{}")); setPrivacySha(privRes.value.sha); }
+                if (termsRes.status === 'fulfilled') { setTermsData(JSON.parse(termsRes.value?.content || "{}")); setTermsSha(termsRes.value.sha); }
             } catch (err: any) {
                 setError('Erro ao carregar dados. Verifique se os arquivos existem no repositório.');
             } finally {

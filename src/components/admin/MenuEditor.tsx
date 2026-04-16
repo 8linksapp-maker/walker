@@ -19,7 +19,7 @@ export default function MenuEditor() {
     useEffect(() => {
         githubApi('read', 'src/data/menu.json')
             .then(data => {
-                const parsed = JSON.parse(data.content);
+                const parsed = JSON.parse(data?.content || "{}");
                 setItems(Array.isArray(parsed.items) ? parsed.items : []);
                 setFileSha(data.sha);
             })

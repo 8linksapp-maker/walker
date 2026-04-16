@@ -30,7 +30,7 @@ export default function CmsDashboard() {
                 let tAuthors = 0;
                 try {
                     const data = await githubApi('read', 'src/data/authors.json');
-                    const parsed = JSON.parse(data.content);
+                    const parsed = JSON.parse(data?.content || "{}");
                     tAuthors = Array.isArray(parsed) ? parsed.length : 0;
                 } catch { /* ignora */ }
 

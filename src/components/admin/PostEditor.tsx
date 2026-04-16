@@ -47,8 +47,8 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                     githubApi('read', 'src/data/authors.json'),
                     githubApi('read', 'src/data/categories.json'),
                 ]);
-                if (authRes.status === 'fulfilled') { const p = JSON.parse(authRes.value.content); if (Array.isArray(p)) setAuthors(p); }
-                if (catRes.status === 'fulfilled') { const p = JSON.parse(catRes.value.content); if (Array.isArray(p)) setDynamicCategories(p); }
+                if (authRes.status === 'fulfilled') { const p = JSON.parse(authRes.value?.content || "{}"); if (Array.isArray(p)) setAuthors(p); }
+                if (catRes.status === 'fulfilled') { const p = JSON.parse(catRes.value?.content || "{}"); if (Array.isArray(p)) setDynamicCategories(p); }
 
                 if (isEditing && filePath) {
                     const fileData = await githubApi('read', filePath);

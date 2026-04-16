@@ -13,7 +13,7 @@ export default function ContatoEditor() {
 
     useEffect(() => {
         githubApi('read', 'src/data/contato.json')
-            .then(data => { setContato(JSON.parse(data.content)); setFileSha(data.sha); })
+            .then(data => { setContato(JSON.parse(data?.content || "{}")); setFileSha(data.sha); })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, []);

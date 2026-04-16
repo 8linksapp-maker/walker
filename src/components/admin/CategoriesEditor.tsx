@@ -16,7 +16,7 @@ export default function CategoriesEditor() {
     useEffect(() => {
         githubApi('read', 'src/data/categories.json')
             .then(data => {
-                const parsed = JSON.parse(data.content);
+                const parsed = JSON.parse(data?.content || "{}");
                 setCategories(Array.isArray(parsed) ? parsed : []);
                 setFileSha(data.sha);
             })

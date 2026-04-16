@@ -16,7 +16,7 @@ export default function AuthorsEditor() {
     useEffect(() => {
         githubApi('read', 'src/data/authors.json')
             .then(data => {
-                const parsed = JSON.parse(data.content);
+                const parsed = JSON.parse(data?.content || "{}");
                 setAuthors(Array.isArray(parsed) ? parsed : []);
                 setFileSha(data.sha);
             })

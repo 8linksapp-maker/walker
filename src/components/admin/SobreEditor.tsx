@@ -13,7 +13,7 @@ export default function SobreEditor() {
 
     useEffect(() => {
         githubApi('read', 'src/data/sobre.json')
-            .then(data => { setSobre(JSON.parse(data.content)); setFileSha(data.sha); })
+            .then(data => { setSobre(JSON.parse(data?.content || "{}")); setFileSha(data.sha); })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, []);

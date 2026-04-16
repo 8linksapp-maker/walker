@@ -95,7 +95,7 @@ export default function HomeEditor() {
                 // Load home.json config
                 const configData = await githubApi('read', 'src/data/home.json').catch(() => null);
                 if (configData) {
-                    setConfig(mergeConfig(JSON.parse(configData.content)));
+                    setConfig(mergeConfig(JSON.parse(configData?.content || "{}")));
                     setFileSha(configData.sha);
                 }
 

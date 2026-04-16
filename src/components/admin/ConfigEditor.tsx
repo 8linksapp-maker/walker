@@ -20,7 +20,7 @@ export default function ConfigEditor() {
 
     useEffect(() => {
         githubApi('read', 'src/data/siteConfig.json')
-            .then(data => { setConfig(JSON.parse(data.content)); setFileSha(data.sha); })
+            .then(data => { setConfig(JSON.parse(data?.content || "{}")); setFileSha(data.sha); })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, []);
