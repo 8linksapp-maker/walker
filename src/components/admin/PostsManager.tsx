@@ -35,14 +35,18 @@ export default function PostsManager() {
                 githubApi('list', 'src/content/blog'),
             ]);
 
-            if (authRes.status === 'fulfilled') {
-                const parsed = JSON.parse(authRes.value.content);
-                if (Array.isArray(parsed)) setAuthors(parsed);
+            if (authRes.status === 'fulfilled' && authRes.value?.content) {
+                try {
+                    const parsed = JSON.parse(authRes.value.content);
+                    if (Array.isArray(parsed)) setAuthors(parsed);
+                } catch {}
             }
 
-            if (catRes.status === 'fulfilled') {
-                const parsedCats = JSON.parse(catRes.value.content);
-                if (Array.isArray(parsedCats)) parsedCats.forEach((c: string) => allCategories.add(c));
+            if (catRes.status === 'fulfilled' && catRes.value?.content) {
+                try {
+                    const parsedCats = JSON.parse(catRes.value.content);
+                    if (Array.isArray(parsedCats)) parsedCats.forEach((c: string) => allCategories.add(c));
+                } catch {}
             }
 
             if (postsRes.status === 'fulfilled') {
