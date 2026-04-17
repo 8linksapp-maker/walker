@@ -53,16 +53,6 @@ export default function PluginsHub({ registry }: Props) {
                 })}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-200">
-                <a
-                    href="/admin/plugin-updates"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors"
-                >
-                    <Package className="w-4 h-4" />
-                    Instalar / Atualizar Plugins
-                    <ChevronRight className="w-3.5 h-3.5" />
-                </a>
-            </div>
         </div>
     );
 }
