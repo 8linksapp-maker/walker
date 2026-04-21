@@ -1,0 +1,52 @@
+---
+/**
+ * GoogleTagManager.astro — Plugin Google Tag Manager
+ *
+ * Injeta o snippet GTM no <head> de todas as páginas públicas.
+ * Lê o containerId de src/data/pluginsConfig.json via readData().
+ * Se cookieConsent.enabled for true, aguarda o evento 'cookies-accepted'
+ * ou verifica localStorage antes de carregar o script.
+ * Se containerId estiver vazio, não renderiza nada.
+ * Também injeta o <noscript> fallback no <body> via JS.
+ */
+import { readData } from '../../lib/readData';
+
+const pluginsConfig = readData('pluginsConfig.json', {}) as any;
+const containerId: string = pluginsConfig?.googleTagManager?.containerId || '';
+const requireConsent: boolean = pluginsConfig?.cookieConsent?.enabled !== false;
+---
+
+{containerId && (
+  <script define:vars={{ containerId, requireConsent }}>
+  (function() {
+    function loadGTM() {
+      if (window.__gtm_loaded) return;
+      window.__gtm_loaded = true;
+
+      // GTM head script
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer',containerId);
+
+      // GTM noscript fallback (injected into body)
+      var noscript = document.createElement('noscript');
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://www.googletagmanager.com/ns.html?id=' + containerId;
+      iframe.height = '0';
+      iframe.width = '0';
+      iframe.style.display = 'none';
+      iframe.style.visibility = 'hidden';
+      noscript.appendChild(iframe);
+      document.body.insertBefore(noscript, document.body.firstChild);
+    }
+
+    if (!requireConsent || localStorage.getItem('cookies-accepted') === 'true') {
+      loadGTM();
+    } else {
+      window.addEventListener('cookies-accepted', loadGTM, { once: true });
+    }
+  })();
+  </script>
+)}

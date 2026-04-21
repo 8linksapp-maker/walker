@@ -9,6 +9,15 @@
     "href": "/admin/analytics"
   },
   {
+    "name": "google-tag-manager",
+    "label": "Google Tag Manager",
+    "description": "Gerencie todas as tags do Google (Analytics, Ads, etc.) com o GTM.",
+    "icon": "Tag",
+    "color": "text-blue-600",
+    "bg": "bg-blue-50",
+    "href": "/admin/gtm"
+  },
+  {
     "name": "meta-pixel",
     "label": "Meta Pixel",
     "description": "Rastreie conversões e audiência com o Facebook/Meta Pixel.",

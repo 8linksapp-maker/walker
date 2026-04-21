@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import SettingsGTM from '../../plugins/google-tag-manager/SettingsGTM';
+---
+<AdminLayout title="Google Tag Manager" activeSection="gtm">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-900">Google Tag Manager</h1>
+        <p class="text-slate-500 mt-1">Gerencie todas as tags do Google (Analytics, Ads, etc.) em um só lugar.</p>
+    </div>
+    <SettingsGTM client:load />
+</AdminLayout>
