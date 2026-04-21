@@ -59,7 +59,7 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
   <title>{formattedTitle}</title>
   <meta name="description" content={description}>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href={siteConfig.favicon || '/favicon.svg'} />
 
   <!-- Google Search Console verification -->
   {gscVerificationTag && (

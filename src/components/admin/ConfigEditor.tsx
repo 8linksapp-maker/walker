@@ -10,6 +10,7 @@ export default function ConfigEditor() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
+    const [pendingFavicon, setPendingFavicon] = useState<File | null>(null);
 
     const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -39,8 +40,16 @@ export default function ConfigEditor() {
                 await githubApi('write', ghPath, { content: base64Content, isBase64: true, message: 'CMS: Upload Logo' });
                 configCopy.logo = ghPath.replace('public', '');
             }
+            if (pendingFavicon) {
+                triggerToast('Enviando favicon...', 'progress', 50);
+                const base64Content = await fileToBase64(pendingFavicon);
+                const fileExt = pendingFavicon.name.split('.').pop() || 'png';
+                const ghPath = `public/favicon.${fileExt}`;
+                await githubApi('write', ghPath, { content: base64Content, isBase64: true, message: 'CMS: Upload Favicon' });
+                configCopy.favicon = `/favicon.${fileExt}`;
+            }
             const res = await githubApi('write', 'src/data/siteConfig.json', { content: JSON.stringify(configCopy, null, 2), sha: fileSha, message: 'CMS: Update siteConfig.json' });
-            setFileSha(res.sha); setPendingLogo(null);
+            setFileSha(res.sha); setPendingLogo(null); setPendingFavicon(null);
             triggerToast('Configurações salvas com sucesso!', 'success', 100);
         } catch (err: any) {
             setError(err.message); triggerToast(`Erro: ${err.message}`, 'error');
@@ -113,9 +122,28 @@ export default function ConfigEditor() {
                                 </span>
                             </label>
                         </div>
-                        <div className="w-full sm:w-2/3 space-y-6">
-                            <div>
-                                <label className={labelClass}>Nome do Site / Empresa</label>
+                        <div className="w-full sm:w-1/3">
+                            <label className={labelClass}>Favicon</label>
+                            <label className="group relative border-2 border-dashed border-slate-300 hover:border-violet-500 bg-slate-50 hover:bg-violet-50/50 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all text-center h-48">
+                                <input type="file" accept="image/png,image/svg+xml,image/x-icon,image/ico" className="hidden" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) { setPendingFavicon(file); setConfig({ ...config, favicon: URL.createObjectURL(file) }); }
+                                }} />
+                                {config?.favicon ? (
+                                    <img src={config.favicon} alt="Favicon" className="max-h-16 w-auto object-contain mb-4 group-hover:scale-105 transition-transform" />
+                                ) : (
+                                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-slate-300 shadow-sm mb-3 group-hover:text-violet-500 transition-colors text-2xl">⭐</div>
+                                )}
+                                <span className="text-sm font-semibold text-slate-700 group-hover:text-violet-700 transition-colors">
+                                    {config?.favicon ? 'Trocar Favicon' : 'Enviar Favicon'}
+                                </span>
+                                <span className="text-[10px] text-slate-400 mt-1">PNG, SVG ou ICO</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div className="md:col-span-2 space-y-6">
+                        <div>
+                            <label className={labelClass}>Nome do Site / Empresa</label>
                                 <input type="text" value={config?.name || ''} onChange={e => setConfig({ ...config, name: e.target.value })} className={inputClass} />
                             </div>
                             <div>
