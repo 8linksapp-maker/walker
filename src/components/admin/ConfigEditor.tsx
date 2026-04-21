@@ -118,6 +118,10 @@ export default function ConfigEditor() {
                                 <label className={labelClass}>Nome do Site / Empresa</label>
                                 <input type="text" value={config?.name || ''} onChange={e => setConfig({ ...config, name: e.target.value })} className={inputClass} />
                             </div>
+                            <div>
+                                <label className={labelClass}>Descrição do Site</label>
+                                <textarea rows={2} placeholder="Breve descrição que aparece no widget 'Sobre' da sidebar do blog" value={config?.description || ''} onChange={e => setConfig({ ...config, description: e.target.value })} className={`${inputClass} resize-y`} />
+                            </div>
                             {/* Preset Themes */}
                             <div>
                                 <label className={labelClass}>Temas Prontos</label>
