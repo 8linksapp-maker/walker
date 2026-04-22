@@ -144,68 +144,67 @@ export default function ConfigEditor() {
                     <div className="md:col-span-2 space-y-6">
                         <div>
                             <label className={labelClass}>Nome do Site / Empresa</label>
-                                <input type="text" value={config?.name || ''} onChange={e => setConfig({ ...config, name: e.target.value })} className={inputClass} />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Descrição do Site</label>
-                                <textarea rows={2} placeholder="Breve descrição que aparece no widget 'Sobre' da sidebar do blog" value={config?.description || ''} onChange={e => setConfig({ ...config, description: e.target.value })} className={`${inputClass} resize-y`} />
-                            </div>
-                            {/* Preset Themes */}
-                            <div>
-                                <label className={labelClass}>Temas Prontos</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {presetThemes.map(preset => (
-                                        <button
-                                            key={preset.name}
-                                            type="button"
-                                            onClick={() => setConfig({ ...config, theme: { ...config.theme, primary: preset.primary, accent: preset.accent, dark: preset.dark } })}
-                                            className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all text-sm font-semibold text-slate-700"
-                                        >
-                                            <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.primary }} />
-                                            <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.accent }} />
-                                            {preset.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {[
-                                    { key: 'primary', label: 'Cor Primária' },
-                                    { key: 'accent', label: 'Cor de Destaque' },
-                                ].map(f => (
-                                    <div key={f.key}>
-                                        <label className={labelClass}>{f.label}</label>
-                                        <div className="flex gap-4 p-2 bg-slate-50 border border-slate-200 rounded-xl">
-                                            <input type="color" value={config?.theme?.[f.key] || '#000000'} onChange={e => setConfig({ ...config, theme: { ...config.theme, [f.key]: e.target.value } })} className="h-10 w-16 p-0 border-0 rounded-lg cursor-pointer bg-transparent" />
-                                            <input type="text" value={config?.theme?.[f.key] || ''} onChange={e => setConfig({ ...config, theme: { ...config.theme, [f.key]: e.target.value } })} className="flex-1 bg-transparent border-none focus:outline-none font-mono text-slate-700 font-bold" />
-                                        </div>
-                                    </div>
+                            <input type="text" value={config?.name || ''} onChange={e => setConfig({ ...config, name: e.target.value })} className={inputClass} />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Descrição do Site</label>
+                            <textarea rows={2} placeholder="Breve descrição que aparece no widget 'Sobre' da sidebar do blog" value={config?.description || ''} onChange={e => setConfig({ ...config, description: e.target.value })} className={`${inputClass} resize-y`} />
+                        </div>
+                        {/* Preset Themes */}
+                        <div>
+                            <label className={labelClass}>Temas Prontos</label>
+                            <div className="flex flex-wrap gap-2">
+                                {presetThemes.map(preset => (
+                                    <button
+                                        key={preset.name}
+                                        type="button"
+                                        onClick={() => setConfig({ ...config, theme: { ...config.theme, primary: preset.primary, accent: preset.accent, dark: preset.dark } })}
+                                        className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl hover:border-violet-400 hover:bg-violet-50 transition-all text-sm font-semibold text-slate-700"
+                                    >
+                                        <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.primary }} />
+                                        <span className="w-4 h-4 rounded-full border border-white shadow-sm" style={{ background: preset.accent }} />
+                                        {preset.name}
+                                    </button>
                                 ))}
                             </div>
-                            {/* Live Preview */}
-                            {(config?.theme?.primary || config?.theme?.accent) && (
-                                <div>
-                                    <label className={labelClass}>Preview</label>
-                                    <div
-                                        className="h-14 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
-                                        style={{ background: `linear-gradient(to right, ${config?.theme?.primary || '#FE4F70'} 0%, ${config?.theme?.accent || '#FFA387'} 100%)` }}
-                                    >
-                                        Botões · Destaques · Categorias
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {[
+                                { key: 'primary', label: 'Cor Primária' },
+                                { key: 'accent', label: 'Cor de Destaque' },
+                            ].map(f => (
+                                <div key={f.key}>
+                                    <label className={labelClass}>{f.label}</label>
+                                    <div className="flex gap-4 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                                        <input type="color" value={config?.theme?.[f.key] || '#000000'} onChange={e => setConfig({ ...config, theme: { ...config.theme, [f.key]: e.target.value } })} className="h-10 w-16 p-0 border-0 rounded-lg cursor-pointer bg-transparent" />
+                                        <input type="text" value={config?.theme?.[f.key] || ''} onChange={e => setConfig({ ...config, theme: { ...config.theme, [f.key]: e.target.value } })} className="flex-1 bg-transparent border-none focus:outline-none font-mono text-slate-700 font-bold" />
                                     </div>
                                 </div>
-                            )}
+                            ))}
+                        </div>
+                        {/* Live Preview */}
+                        {(config?.theme?.primary || config?.theme?.accent) && (
                             <div>
-                                <label className={labelClass}>Combinação de Fontes</label>
-                                <select value={config?.theme?.font || 'outfit'} onChange={e => setConfig({ ...config, theme: { ...config.theme, font: e.target.value } })} className={inputClass}>
-                                    <option value="inter">Inter & Roboto Mono (Moderno / Tech)</option>
-                                    <option value="outfit">Outfit & Inter (Clean / SaaS)</option>
-                                    <option value="roboto">Roboto & Open Sans (Corporativo / Neutro)</option>
-                                    <option value="poppins">Poppins & Lora (Criativo / Boutique)</option>
-                                    <option value="montserrat">Montserrat & Merriweather (Profissional / Textual)</option>
-                                    <option value="playfair">Playfair Display & Source Sans (Elegante / Editorial)</option>
-                                    <option value="lora">Lora & Merriweather (Revista / Narrativa)</option>
-                                </select>
+                                <label className={labelClass}>Preview</label>
+                                <div
+                                    className="h-14 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                                    style={{ background: `linear-gradient(to right, ${config?.theme?.primary || '#FE4F70'} 0%, ${config?.theme?.accent || '#FFA387'} 100%)` }}
+                                >
+                                    Botões · Destaques · Categorias
+                                </div>
                             </div>
+                        )}
+                        <div>
+                            <label className={labelClass}>Combinação de Fontes</label>
+                            <select value={config?.theme?.font || 'outfit'} onChange={e => setConfig({ ...config, theme: { ...config.theme, font: e.target.value } })} className={inputClass}>
+                                <option value="inter">Inter & Roboto Mono (Moderno / Tech)</option>
+                                <option value="outfit">Outfit & Inter (Clean / SaaS)</option>
+                                <option value="roboto">Roboto & Open Sans (Corporativo / Neutro)</option>
+                                <option value="poppins">Poppins & Lora (Criativo / Boutique)</option>
+                                <option value="montserrat">Montserrat & Merriweather (Profissional / Textual)</option>
+                                <option value="playfair">Playfair Display & Source Sans (Elegante / Editorial)</option>
+                                <option value="lora">Lora & Merriweather (Revista / Narrativa)</option>
+                            </select>
                         </div>
                     </div>
                 </div>
