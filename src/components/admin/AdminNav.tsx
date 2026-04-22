@@ -29,7 +29,7 @@ const pageItems: NavItem[] = [
 
 const pluginItems: NavItem[] = [
     { label: 'Plugins', href: '/admin/plugins', icon: Sparkles, section: 'plugins' },
-    { label: 'Tag Manager', href: '/admin/gtm', icon: Tag, section: 'gtm' },
+    { label: 'Google Tag', href: '/admin/google-tag', icon: Tag, section: 'google-tag' },
 ];
 
 interface AdminNavProps {

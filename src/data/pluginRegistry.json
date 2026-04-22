@@ -1,21 +1,12 @@
 [
   {
-    "name": "google-analytics",
-    "label": "Google Analytics",
-    "description": "Rastreie visitas e comportamento dos leitores com GA4.",
-    "icon": "BarChart3",
-    "color": "text-orange-600",
-    "bg": "bg-orange-50",
-    "href": "/admin/analytics"
-  },
-  {
-    "name": "google-tag-manager",
-    "label": "Google Tag Manager",
-    "description": "Gerencie todas as tags do Google (Analytics, Ads, etc.) com o GTM.",
+    "name": "google-tag",
+    "label": "Google Tag",
+    "description": "Configure todas as tags do Google (Analytics, Ads, Tag Manager) em um so lugar.",
     "icon": "Tag",
     "color": "text-blue-600",
     "bg": "bg-blue-50",
-    "href": "/admin/gtm"
+    "href": "/admin/google-tag"
   },
   {
     "name": "meta-pixel",

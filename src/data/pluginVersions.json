@@ -1,6 +1,5 @@
 {
-  "google-analytics": "1.0.0",
-  "google-tag-manager": "1.0.0",
+  "google-tag": "1.0.0",
   "meta-pixel": "1.0.0",
   "adsense": "1.0.0",
   "social-share": "1.0.0",
