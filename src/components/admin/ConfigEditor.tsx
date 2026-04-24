@@ -45,7 +45,12 @@ export default function ConfigEditor() {
                 const base64Content = await fileToBase64(pendingFavicon);
                 const fileExt = pendingFavicon.name.split('.').pop() || 'png';
                 const ghPath = `public/favicon.${fileExt}`;
-                await githubApi('write', ghPath, { content: base64Content, isBase64: true, message: 'CMS: Upload Favicon' });
+                let faviconSha: string | undefined;
+                try {
+                    const existing = await githubApi('read', ghPath);
+                    if (existing?.sha) faviconSha = existing.sha;
+                } catch {}
+                await githubApi('write', ghPath, { content: base64Content, isBase64: true, sha: faviconSha, message: 'CMS: Upload Favicon' });
                 configCopy.favicon = `/favicon.${fileExt}`;
             }
             const res = await githubApi('write', 'src/data/siteConfig.json', { content: JSON.stringify(configCopy, null, 2), sha: fileSha, message: 'CMS: Update siteConfig.json' });
