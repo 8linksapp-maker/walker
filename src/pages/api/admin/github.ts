@@ -157,7 +157,18 @@ export const POST: APIRoute = async ({ request }) => {
                     message: message || `Update ${path} via CMS`,
                     content: isBase64 ? content : Buffer.from(content).toString('base64'),
                 };
-                if (sha) writeBody.sha = sha;
+                // Auto-fetch sha if not provided (needed when file already exists)
+                let writeSha = sha;
+                if (!writeSha) {
+                    try {
+                        const existing = await fetch(githubUrl, { headers });
+                        if (existing.ok) {
+                            const existingData = await existing.json();
+                            if (existingData.sha) writeSha = existingData.sha;
+                        }
+                    } catch {}
+                }
+                if (writeSha) writeBody.sha = writeSha;
                 res = await fetch(githubUrl, {
                     method: 'PUT',
                     headers: { ...headers, 'Content-Type': 'application/json' },
