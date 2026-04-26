@@ -32,7 +32,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/')) {
         const redirects = getRedirects();
         for (const r of redirects) {
-            if (r.enabled && r.from && r.to && r.from === pathname) {
+            const normFrom = r.from?.replace(/\/+$/, '') || '';
+            const normPath = pathname.replace(/\/+$/, '') || '/';
+            if (r.enabled && normFrom && r.to && (normFrom === normPath || r.from === pathname)) {
                 return context.redirect(r.to, r.type || 301);
             }
         }
