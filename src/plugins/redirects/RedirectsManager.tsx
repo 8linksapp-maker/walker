@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Save, Loader2, AlertCircle, Plus, Trash2, Edit2, ToggleLeft, ToggleRight, ArrowRight } from 'lucide-react';
+import { Save, Loader2, AlertCircle, Plus, Trash2, Edit2, ToggleLeft, ToggleRight, ArrowRight, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 import { triggerToast } from '../../components/admin/CmsToaster';
 
 interface Redirect {
@@ -35,6 +35,37 @@ export default function RedirectsManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyRedirect());
   const [showForm, setShowForm] = useState(false);
+
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<Record<string, { ok: boolean; status: number; location?: string }>>({});
+
+  const handleTest = async (r: Redirect) => {
+    setTestingId(r.id);
+    setTestResult(prev => ({ ...prev, [r.id]: undefined as any }));
+    try {
+      const siteUrl = window.location.origin;
+      const testUrl = r.from.startsWith('http') ? r.from : `${siteUrl}${r.from.startsWith('/') ? '' : '/'}${r.from}`;
+      const res = await fetch(testUrl, { method: 'HEAD', redirect: 'manual' });
+      const location = res.headers.get('location') || '';
+      const isRedirect = res.status >= 300 && res.status < 400;
+      setTestResult(prev => ({ ...prev, [r.id]: { ok: isRedirect, status: res.status, location } }));
+    } catch {
+      // fetch with redirect:'manual' may fail due to CORS, try alternative
+      try {
+        const res = await fetch(`/api/admin/plugins/redirects/test?path=${encodeURIComponent(r.from)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setTestResult(prev => ({ ...prev, [r.id]: data }));
+        } else {
+          setTestResult(prev => ({ ...prev, [r.id]: { ok: false, status: 0 } }));
+        }
+      } catch {
+        setTestResult(prev => ({ ...prev, [r.id]: { ok: false, status: 0 } }));
+      }
+    } finally {
+      setTestingId(null);
+    }
+  };
 
   const getToken = async () => {
     try {
@@ -280,6 +311,14 @@ export default function RedirectsManager() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 justify-end">
+                      <button
+                        onClick={() => handleTest(r)}
+                        disabled={testingId === r.id || !r.enabled}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30"
+                        title="Testar redirect"
+                      >
+                        {testingId === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                      </button>
                       <button onClick={() => handleEdit(r)} className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -287,6 +326,12 @@ export default function RedirectsManager() {
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
+                    {testResult[r.id] && (
+                      <div className={`mt-1 flex items-center gap-1 text-[10px] font-bold ${testResult[r.id].ok ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {testResult[r.id].ok ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {testResult[r.id].ok ? `${testResult[r.id].status} → OK` : testResult[r.id].status ? `${testResult[r.id].status} — Falhou` : 'Erro de rede'}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
