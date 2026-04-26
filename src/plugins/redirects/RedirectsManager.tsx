@@ -7,10 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { Save, Loader2, AlertCircle, Plus, Trash2, Edit2, ToggleLeft, ToggleRight, ArrowRight } from 'lucide-react';
-import { githubApi } from '../../lib/adminApi';
 import { triggerToast } from '../../components/admin/CmsToaster';
-
-const REDIRECTS_PATH = 'src/data/redirects.json';
 
 interface Redirect {
   id: string;
@@ -39,32 +36,47 @@ export default function RedirectsManager() {
   const [form, setForm] = useState(emptyRedirect());
   const [showForm, setShowForm] = useState(false);
 
+  const getToken = async () => {
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient(
+        (import.meta as any).env?.PUBLIC_SUPABASE_URL || '',
+        (import.meta as any).env?.PUBLIC_SUPABASE_ANON_KEY || ''
+      );
+      const { data } = await sb.auth.getSession();
+      return data.session?.access_token || '';
+    } catch { return ''; }
+  };
+
   useEffect(() => {
-    githubApi('read', REDIRECTS_PATH)
-      .then(data => {
-        const arr = JSON.parse(data.content);
-        setRedirects(Array.isArray(arr) ? arr : []);
-        setFileSha(data.sha);
-      })
-      .catch(() => {
-        // File may not exist yet
-        setRedirects([]);
-      })
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/plugins/redirects');
+        if (res.ok) {
+          const arr = await res.json();
+          setRedirects(Array.isArray(arr) ? arr : []);
+        }
+      } catch {}
+      setLoading(false);
+    })();
   }, []);
 
   const saveRedirects = async (newList: Redirect[]) => {
     setSaving(true);
     setError('');
     try {
-      const res = await githubApi('write', REDIRECTS_PATH, {
-        content: JSON.stringify(newList, null, 2),
-        sha: fileSha || undefined,
-        message: 'CMS: Update redirects',
+      const res = await fetch('/api/admin/plugins/redirects', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newList),
       });
-      setFileSha(res.sha || fileSha);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Falha ao salvar');
+      }
       setRedirects(newList);
-      triggerToast('Redirects salvos!', 'success', 100);
+      const ativos = newList.filter(r => r.enabled).length;
+      triggerToast(`${ativos} redirect${ativos !== 1 ? 's' : ''} ativo${ativos !== 1 ? 's' : ''} — sincronizado com Vercel!`, 'success', 100);
     } catch (err: any) {
       setError(err.message);
       triggerToast(`Erro: ${err.message}`, 'error');
@@ -283,14 +295,28 @@ export default function RedirectsManager() {
         </div>
       )}
 
+      {/* Status */}
+      {redirects.length > 0 && (
+        <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-4 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-200 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-emerald-800">{redirects.filter(r => r.enabled).length} redirect{redirects.filter(r => r.enabled).length !== 1 ? 's' : ''} ativo{redirects.filter(r => r.enabled).length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-emerald-600">Sincronizado automaticamente com a Vercel. Funciona assim que o deploy terminar (~2 min).</p>
+          </div>
+        </div>
+      )}
+
       {/* Info */}
       <div className="bg-blue-50 rounded-2xl border border-blue-200 p-5">
-        <p className="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2">Para que serve</p>
+        <p className="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2">Como funciona</p>
         <ul className="space-y-1 text-sm text-blue-800">
           <li>• Use quando renomear ou mover uma página — quem acessar o endereço antigo chega ao novo automaticamente</li>
           <li>• Escolha <strong>301</strong> quando a mudança for definitiva (ex: renomeou um artigo)</li>
           <li>• Escolha <strong>302</strong> quando for temporário (ex: página em manutenção ou promoção por tempo limitado)</li>
-          <li>• No campo <strong>De</strong>, coloque o endereço antigo. No campo <strong>Para</strong>, o endereço novo</li>
+          <li>• No campo <strong>De</strong>, coloque o caminho antigo (ex: <code>/artigo-antigo</code>). No campo <strong>Para</strong>, o novo</li>
+          <li>• Os redirects são aplicados automaticamente na Vercel após o deploy</li>
         </ul>
       </div>
     </div>
