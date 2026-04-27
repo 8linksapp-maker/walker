@@ -67,18 +67,6 @@ export default function RedirectsManager() {
     }
   };
 
-  const getToken = async () => {
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const sb = createClient(
-        (import.meta as any).env?.PUBLIC_SUPABASE_URL || '',
-        (import.meta as any).env?.PUBLIC_SUPABASE_ANON_KEY || ''
-      );
-      const { data } = await sb.auth.getSession();
-      return data.session?.access_token || '';
-    } catch { return ''; }
-  };
-
   useEffect(() => {
     (async () => {
       try {
