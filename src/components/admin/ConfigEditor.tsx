@@ -215,6 +215,23 @@ export default function ConfigEditor() {
                 </div>
             </div>
 
+            {/* Prefixo da URL dos Posts */}
+            <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Prefixo da URL dos Posts</h3>
+                <div className="flex gap-2">
+                    {[
+                        { value: 'blog', label: '/blog/titulo-do-post', desc: 'Padrao' },
+                        { value: '', label: '/titulo-do-post', desc: 'URL limpa (sem /blog)' },
+                    ].map(opt => (
+                        <label key={opt.value} className={`flex-1 p-3 border rounded-xl cursor-pointer transition-all text-center ${(config?.postUrlPrefix ?? 'blog') === opt.value ? 'border-violet-500 bg-violet-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                            <input type="radio" name="postUrlPrefix" value={opt.value} checked={(config?.postUrlPrefix ?? 'blog') === opt.value} onChange={e => setConfig({ ...config, postUrlPrefix: e.target.value })} className="hidden" />
+                            <p className="text-sm font-bold text-slate-800">{opt.label}</p>
+                            <p className="text-xs text-slate-500">{opt.desc}</p>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
             {/* Informações de Contato */}
             <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Informações de Contato</h3>
@@ -254,6 +271,15 @@ export default function ConfigEditor() {
                             <input type="url" placeholder={`https://${social}.com/seuperfil`} value={config?.social?.[social] || ''} onChange={e => setConfig({ ...config, social: { ...config.social, [social]: e.target.value } })} className={`${inputClass} font-mono`} />
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Rodape (Footer) */}
+            <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Rodape (Footer)</h3>
+                <div className="space-y-4">
+                    <div><label className={labelClass}>Descricao do Footer</label><textarea rows={3} placeholder="Texto que aparece no rodape do site" value={config?.footer?.description || ''} onChange={e => setConfig({ ...config, footer: { ...config.footer, description: e.target.value } })} className={`${inputClass} resize-y`} /></div>
+                    <div><label className={labelClass}>Texto de Copyright</label><input type="text" placeholder="Nome da empresa ou site" value={config?.footer?.copyright || ''} onChange={e => setConfig({ ...config, footer: { ...config.footer, copyright: e.target.value } })} className={inputClass} /></div>
                 </div>
             </div>
 

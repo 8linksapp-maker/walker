@@ -24,7 +24,7 @@ const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : cat
           )}
         </a>
         <p class="text-white/70 text-sm leading-relaxed mb-5">
-          {siteConfig.description}
+          {siteConfig.footer?.description || siteConfig.description}
         </p>
         <!-- Social icons -->
         <div class="flex items-center gap-3">
@@ -114,7 +114,7 @@ const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : cat
     <!-- Barra copyright -->
     <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
       <p class="text-white/50 text-xs">
-        &copy; {new Date().getFullYear()} {siteConfig.name}. Todos os direitos reservados.
+        &copy; {new Date().getFullYear()} {siteConfig.footer?.copyright || siteConfig.name}. Todos os direitos reservados.
       </p>
       <div class="flex items-center gap-4">
         <a href="/privacidade" class="text-white/50 hover:text-white/80 text-xs transition-colors">Privacidade</a>

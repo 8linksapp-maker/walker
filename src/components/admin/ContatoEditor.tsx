@@ -112,6 +112,17 @@ export default function ContatoEditor() {
                 </div>
 
                 <div className={cardClass}>
+                    <h3 className="text-lg font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4">3. Google Maps</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className={labelClass}>URL do Google Maps (Embed)</label>
+                            <input type="text" value={contato?.googleMapsUrl || ''} onChange={e => setContato({ ...contato, googleMapsUrl: e.target.value })} placeholder="https://www.google.com/maps/embed?pb=..." className={inputClass} />
+                            <p className="text-xs text-slate-400 mt-1">Google Maps &rarr; Compartilhar &rarr; Incorporar &rarr; copie a URL do src=""</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={cardClass}>
                     <h3 className="text-lg font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4">SEO</h3>
                     <div className="space-y-4">
                         <div><label className={labelClass}>Título SEO</label><input type="text" value={contato?.seo?.title || ''} onChange={e => updateField('seo', 'title', e.target.value)} className={inputClass} placeholder="Contato | Nome do Site" /></div>

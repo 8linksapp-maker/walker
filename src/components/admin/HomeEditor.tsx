@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, TrendingUp, Sparkles, Type, Save, Loader2, AlertCircle, Check, RefreshCw } from 'lucide-react';
+import { Home, TrendingUp, Sparkles, Type, Save, Loader2, AlertCircle, Check, RefreshCw, ToggleLeft } from 'lucide-react';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
 
@@ -78,7 +78,7 @@ function PostPicker({ value, posts, onChange, placeholder }: {
     );
 }
 
-type Tab = 'curation' | 'titles' | 'latest';
+type Tab = 'curation' | 'titles' | 'latest' | 'sections';
 
 export default function HomeEditor() {
     const [config, setConfig] = useState<HomeConfig>(DEFAULT);
@@ -188,8 +188,9 @@ export default function HomeEditor() {
 
     const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
         { id: 'curation', label: 'Curadoria', icon: Home },
-        { id: 'titles', label: 'Títulos', icon: Type },
+        { id: 'titles', label: 'Titulos', icon: Type },
         { id: 'latest', label: 'Recentes', icon: RefreshCw },
+        { id: 'sections', label: 'Secoes', icon: ToggleLeft },
     ];
 
     return (
@@ -392,6 +393,29 @@ export default function HomeEditor() {
                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-all"
                         />
                     </div>
+                </div>
+            )}
+
+            {/* Tab: Secoes */}
+            {tab === 'sections' && (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-3">
+                    <p className="text-sm text-slate-500 mb-4">Escolha quais secoes da homepage ficam visiveis.</p>
+                    {[
+                        { key: 'showEditorsPick', label: 'Escolha dos Editores' },
+                        { key: 'showTrending', label: 'Em Alta (Trending)' },
+                        { key: 'showInspiration', label: 'Inspiracao' },
+                        { key: 'showLatestPosts', label: 'Posts Recentes' },
+                    ].map(s => (
+                        <label key={s.key} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                            <input
+                                type="checkbox"
+                                checked={(config as any).sections?.[s.key] !== false}
+                                onChange={e => setConfig(c => ({ ...c, sections: { ...(c as any).sections, [s.key]: e.target.checked } }))}
+                                className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">{s.label}</span>
+                        </label>
+                    ))}
                 </div>
             )}
         </div>
