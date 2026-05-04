@@ -29,6 +29,9 @@ export default function PostEditor({ filePath }: PostEditorProps) {
         } catch { return new Date().toISOString().split('T')[0]; }
     };
 
+    // Guardamos o ISO completo original para preservar horario quando aluno edita post sem mudar a data
+    const [originalPubDateISO, setOriginalPubDateISO] = useState<string>('');
+
     const [post, setPost] = useState({
         title: '', slug: '', description: '', pubDate: new Date().toISOString().split('T')[0],
         heroImage: '', category: '', author: '', draft: false, content: ''
@@ -60,9 +63,11 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                         const body = match[2].trim();
                         const extract = (key: string) => { const m = fm.match(new RegExp(`${key}:\\s*(?:"([^"]*)"|'([^']*)'|(.*))`)); return m ? (m[1] || m[2] || m[3] || '').trim() : ''; };
                         const parsedHtml = await marked.parse(body);
+                        const rawPubDate = extract('pubDate');
+                        if (rawPubDate) setOriginalPubDateISO(rawPubDate);
                         setPost({
                             title: extract('title'), slug: filePath.split('/').pop()?.replace('.md', '') || '',
-                            description: extract('description'), pubDate: extract('pubDate') ? formatDateForInput(extract('pubDate')) : new Date().toISOString().split('T')[0],
+                            description: extract('description'), pubDate: rawPubDate ? formatDateForInput(rawPubDate) : new Date().toISOString().split('T')[0],
                             heroImage: extract('heroImage'), category: extract('category') || 'Geral', author: extract('author'),
                             draft: extract('draft') === 'true', content: parsedHtml
                         });
@@ -79,8 +84,10 @@ export default function PostEditor({ filePath }: PostEditorProps) {
         loadData();
     }, [filePath, isEditing]);
 
+    const slugify = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
     const handleTitleChange = (val: string) => {
-        setPost(p => ({ ...p, title: val, slug: isEditing ? p.slug : val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') }));
+        setPost(p => ({ ...p, title: val, slug: isEditing ? p.slug : slugify(val) }));
     };
 
     const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -128,7 +135,14 @@ export default function PostEditor({ filePath }: PostEditorProps) {
             }
             const cleanedContent = post.content.replace(/&nbsp;/g, ' ').replace(/\u00A0/g, ' ');
             const finalHtmlContent = await extractAndUploadInlineImages(cleanedContent);
-            const markdown = `---\ntitle: "${post.title.replace(/"/g, '\\"')}"\ndescription: "${post.description.replace(/"/g, '\\"')}"\npubDate: "${post.pubDate}"\nheroImage: "${finalHeroImage}"\ncategory: "${post.category}"\nauthor: "${post.author}"\ndraft: ${post.draft}\n---\n${finalHtmlContent}`;
+            // Preserva ISO original se aluno nao mudou a data; caso contrario usa data + horario atual (garante ordenacao por minuto)
+            let finalPubDate = post.pubDate;
+            if (originalPubDateISO && originalPubDateISO.split('T')[0] === post.pubDate) {
+                finalPubDate = originalPubDateISO;
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(post.pubDate)) {
+                finalPubDate = `${post.pubDate}T${new Date().toISOString().slice(11, 19)}.000Z`;
+            }
+            const markdown = `---\ntitle: "${post.title.replace(/"/g, '\\"')}"\ndescription: "${post.description.replace(/"/g, '\\"')}"\npubDate: "${finalPubDate}"\nheroImage: "${finalHeroImage}"\ncategory: "${post.category}"\nauthor: "${post.author}"\ndraft: ${post.draft}\n---\n${finalHtmlContent}`;
             const targetPath = `src/content/blog/${post.slug}.md`;
             const res = await githubApi('write', targetPath, { content: markdown, sha: fileSha || undefined, message: `CMS: ${isEditing ? 'Edição' : 'Criação'} do artigo ${post.slug}` });
             if (res.sha) setFileSha(res.sha);
@@ -184,7 +198,7 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                         <input type="text" value={post.title} onChange={e => handleTitleChange(e.target.value)} className={inputClass} placeholder="Título do artigo..." />
                         <div className="mt-3">
                             <label className={labelClass}>Slug (URL) *</label>
-                            <input type="text" value={post.slug} onChange={e => setPost(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }))} className={`${inputClass} font-mono text-xs`} placeholder="url-do-artigo" />
+                            <input type="text" value={post.slug} onChange={e => setPost(p => ({ ...p, slug: slugify(e.target.value) }))} className={`${inputClass} font-mono text-xs`} placeholder="url-do-artigo" />
                         </div>
                         <div className="mt-3">
                             <label className={labelClass}>Descrição / Meta Description</label>

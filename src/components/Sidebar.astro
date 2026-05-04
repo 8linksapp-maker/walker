@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../lib/postUrl';
 import { getCollection } from 'astro:content';
 import { readData } from '../lib/readData';
 const categoriesData = readData('categories.json', []);
@@ -60,7 +61,7 @@ const categoryCounts = allCategories.map(cat => ({
         <div class="post post-list-sm circle">
           <div class="thumb circle">
             <span class="number">{i + 1}</span>
-            <a href={`/blog/${post.slug}`}>
+            <a href={`${BLOG_BASE}/${post.slug}`}>
               <div class="inner">
                 {post.data.heroImage ? (
                   <img src={post.data.heroImage} alt={post.data.title} />
@@ -72,7 +73,7 @@ const categoryCounts = allCategories.map(cat => ({
           </div>
           <div class="details clearfix">
             <h6 class="post-title my-0">
-              <a href={`/blog/${post.slug}`}>{post.data.title}</a>
+              <a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a>
             </h6>
             <ul class="meta list-inline mt-1 mb-0">
               <li class="list-inline-item">
@@ -139,7 +140,7 @@ const categoryCounts = allCategories.map(cat => ({
                 {post.data.category && (
                   <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{post.data.category}</a>
                 )}
-                <a href={`/blog/${post.slug}`}>
+                <a href={`${BLOG_BASE}/${post.slug}`}>
                   <div class="inner">
                     {post.data.heroImage ? (
                       <img src={post.data.heroImage} alt={post.data.title} />
@@ -150,7 +151,7 @@ const categoryCounts = allCategories.map(cat => ({
                 </a>
               </div>
               <h5 class="post-title mb-0 mt-4">
-                <a href={`/blog/${post.slug}`}>{post.data.title}</a>
+                <a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a>
               </h5>
               <ul class="meta list-inline mt-2 mb-0">
                 <li class="list-inline-item">

@@ -1,0 +1,28 @@
+---
+// Pagina 404 — redireciona automaticamente para a home apos 3s
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex,nofollow">
+    <meta http-equiv="refresh" content="3;url=/">
+    <title>Pagina nao encontrada — Redirecionando...</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem; text-align: center; }
+        .box { max-width: 480px; }
+        h1 { font-size: 4rem; margin: 0; opacity: 0.5; }
+        p { font-size: 1.125rem; margin: 1rem 0; }
+        a { color: #fff; background: rgba(255,255,255,0.1); padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-decoration: none; display: inline-block; margin-top: 1rem; transition: background 0.2s; }
+        a:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>404</h1>
+        <p>Pagina nao encontrada. Redirecionando para a home em 3 segundos...</p>
+        <a href="/">Voltar para a Home</a>
+    </div>
+    <script>setTimeout(function(){window.location.href='/';},3000);</script>
+</body>
+</html>

@@ -230,7 +230,9 @@ export default function AffiliateManager() {
       slug: finalSlug,
       pros: finalPros,
       cons: finalCons,
-      extraLinks: extraLinks.filter(l => l.label.trim() && l.url.trim()),
+      extraLinks: extraLinks
+        .filter(l => l.label.trim() && l.url.trim())
+        .map(l => ({ label: l.label.trim(), url: /^https?:\/\//i.test(l.url.trim()) ? l.url.trim() : `https://${l.url.trim().replace(/^\/+/, '')}` })),
       id: editingId || `p_${Date.now()}`,
     };
 
@@ -404,7 +406,7 @@ export default function AffiliateManager() {
                           placeholder="Magalu"
                         />
                         <input
-                          type="url"
+                          type="text"
                           value={link.url}
                           onChange={e => setExtraLinks(ls => ls.map((l, j) => j === i ? { ...l, url: e.target.value } : l))}
                           className={`${inputClass} font-mono flex-1`}

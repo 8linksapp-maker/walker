@@ -21,7 +21,7 @@ export default function ConfigEditor() {
 
     useEffect(() => {
         githubApi('read', 'src/data/siteConfig.json')
-            .then(data => { setConfig(JSON.parse(data?.content || "{}")); setFileSha(data.sha); })
+            .then(data => { const cfg = JSON.parse(data?.content || "{}"); if (typeof cfg.logo === 'string' && cfg.logo.startsWith('blob:')) cfg.logo = ''; if (typeof cfg.favicon === 'string' && cfg.favicon.startsWith('blob:')) cfg.favicon = ''; setConfig(cfg); setFileSha(data.sha); })
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));
     }, []);
@@ -53,6 +53,8 @@ export default function ConfigEditor() {
                 await githubApi('write', ghPath, { content: base64Content, isBase64: true, sha: faviconSha, message: 'CMS: Upload Favicon' });
                 configCopy.favicon = `/favicon.${fileExt}`;
             }
+            if (typeof configCopy.logo === 'string' && configCopy.logo.startsWith('blob:')) configCopy.logo = '';
+            if (typeof configCopy.favicon === 'string' && configCopy.favicon.startsWith('blob:')) configCopy.favicon = '';
             const res = await githubApi('write', 'src/data/siteConfig.json', { content: JSON.stringify(configCopy, null, 2), sha: fileSha, message: 'CMS: Update siteConfig.json' });
             setFileSha(res.sha); setPendingLogo(null); setPendingFavicon(null);
             triggerToast('Configurações salvas com sucesso!', 'success', 100);
@@ -126,6 +128,13 @@ export default function ConfigEditor() {
                                     {config?.logo ? 'Trocar Logo' : 'Enviar Logo (PNG/SVG)'}
                                 </span>
                             </label>
+                            <div className="mt-3">
+                                <label className="text-xs font-semibold text-slate-600 flex justify-between mb-1">
+                                    <span>Tamanho da logo (header)</span>
+                                    <span className="font-mono text-violet-600">{config?.logoHeight ?? 40}px</span>
+                                </label>
+                                <input type="range" min={24} max={120} step={2} value={config?.logoHeight ?? 40} onChange={e => setConfig({ ...config, logoHeight: Number(e.target.value) })} className="w-full accent-violet-500" />
+                            </div>
                         </div>
                         <div className="w-full sm:w-1/3">
                             <label className={labelClass}>Favicon</label>
@@ -177,6 +186,8 @@ export default function ConfigEditor() {
                             {[
                                 { key: 'primary', label: 'Cor Primária' },
                                 { key: 'accent', label: 'Cor de Destaque' },
+                                { key: 'text', label: 'Cor do Texto' },
+                                { key: 'heading', label: 'Cor dos Títulos' },
                             ].map(f => (
                                 <div key={f.key}>
                                     <label className={labelClass}>{f.label}</label>
@@ -232,6 +243,18 @@ export default function ConfigEditor() {
                 </div>
             </div>
 
+            {/* Exibição dos Posts */}
+            <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Exibição dos Posts</h3>
+                <label className="flex items-center justify-between gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:border-violet-400 transition-all">
+                    <div>
+                        <p className="text-sm font-bold text-slate-800">Ocultar data de publicação</p>
+                        <p className="text-xs text-slate-500">Esconde a data nos cards e na página dos artigos</p>
+                    </div>
+                    <input type="checkbox" checked={!!config?.hidePostDate} onChange={e => setConfig({ ...config, hidePostDate: e.target.checked })} className="w-5 h-5 accent-violet-500" />
+                </label>
+            </div>
+
             {/* Informações de Contato */}
             <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Informações de Contato</h3>
@@ -265,7 +288,7 @@ export default function ConfigEditor() {
             <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Redes Sociais (Rodapé)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {['instagram', 'twitter', 'linkedin', 'github', 'youtube', 'facebook'].map(social => (
+                    {['instagram', 'twitter', 'linkedin', 'github', 'youtube', 'facebook', 'pinterest'].map(social => (
                         <div key={social}>
                             <label className={labelClass}>{social}</label>
                             <input type="url" placeholder={`https://${social}.com/seuperfil`} value={config?.social?.[social] || ''} onChange={e => setConfig({ ...config, social: { ...config.social, [social]: e.target.value } })} className={`${inputClass} font-mono`} />

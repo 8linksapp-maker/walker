@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../../lib/postUrl';
 /**
  * RelatedPosts.astro — Plugin Related Posts
  *
@@ -59,10 +60,10 @@ if (enabled && category) {
           <div class="col-md-4">
             <div class="post post-grid rounded bordered">
               {post.data.heroImage && (
-                <div class="thumb top-rounded">
-                  <a href={`/blog/${post.slug}`}>
-                    <div class="inner">
-                      <img src={post.data.heroImage} alt={post.data.title} loading="lazy" />
+                <div class="thumb top-rounded" style="position:relative;">
+                  <a href={`${BLOG_BASE}/${post.slug}`}>
+                    <div class="inner" style="aspect-ratio: 16/9; overflow: hidden; border-radius: inherit;">
+                      <img src={post.data.heroImage} alt={post.data.title} loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
                     </div>
                   </a>
                   {postCategory && (
@@ -73,11 +74,11 @@ if (enabled && category) {
               <div class="details clearfix">
                 <ul class="meta list-inline mb-0">
                   <li class="list-inline-item">
-                    <a href={`/blog/${post.slug}`}>{postDate}</a>
+                    <a href={`${BLOG_BASE}/${post.slug}`}>{postDate}</a>
                   </li>
                 </ul>
                 <h4 class="title">
-                  <a href={`/blog/${post.slug}`}>{post.data.title}</a>
+                  <a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a>
                 </h4>
                 {post.data.description && (
                   <p class="post-excerpt">{post.data.description}</p>

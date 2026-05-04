@@ -1,0 +1,127 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getCollection } from 'astro:content';
+import { BLOG_BASE } from '../lib/postUrl';
+
+const posts = (await getCollection('blog'))
+    .filter(p => !p.data.draft)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const items = posts.map(p => ({
+    slug: p.slug,
+    title: p.data.title,
+    description: p.data.description || '',
+    heroImage: p.data.heroImage || '',
+    category: p.data.category || '',
+    pubDate: p.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+}));
+---
+
+<BaseLayout title="Buscar" description="Resultados da busca">
+    <section class="page-header">
+        <div class="container-xl">
+            <div class="text-center">
+                <h1 class="mt-0 mb-2">Resultados da busca</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center mb-0">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Buscar</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </section>
+
+    <section class="main-content">
+        <div class="container-xl">
+            <div class="row gy-4">
+                <div class="col-lg-8">
+                    <div class="bordered rounded padding-30 mb-4">
+                        <form id="search-form" class="d-flex">
+                            <input id="q-input" type="search" name="q" class="form-control me-2" placeholder="Digite sua busca..." />
+                            <button type="submit" class="btn btn-default">Buscar</button>
+                        </form>
+                        <p id="result-info" class="text-muted mt-3 mb-0 small"></p>
+                    </div>
+                    <div id="search-results" class="row gy-4"></div>
+                    <div id="empty-state" class="bordered rounded padding-30 text-center" style="display:none;">
+                        <p class="mb-0">Nenhum artigo encontrado para o termo buscado.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <Sidebar />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script id="search-data" type="application/json" set:html={JSON.stringify(items)} />
+    <script type="module" define:vars={{ blogBase: BLOG_BASE }}>
+        const items = JSON.parse(document.getElementById('search-data').textContent || '[]');
+        const $results = document.getElementById('search-results');
+        const $empty = document.getElementById('empty-state');
+        const $info = document.getElementById('result-info');
+        const $input = document.getElementById('q-input');
+        const $form = document.getElementById('search-form');
+
+        function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+        function search(q) {
+            const nq = norm(q.trim());
+            if (!nq) return [];
+            return items.filter(i =>
+                norm(i.title).includes(nq) ||
+                norm(i.description).includes(nq) ||
+                norm(i.category).includes(nq)
+            );
+        }
+
+        function render(filtered, query) {
+            if (!query.trim()) {
+                $info.textContent = 'Digite um termo para buscar.';
+                $results.innerHTML = '';
+                $empty.style.display = 'none';
+                return;
+            }
+            $info.textContent = `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} para "${query}"`;
+            if (!filtered.length) {
+                $results.innerHTML = '';
+                $empty.style.display = 'block';
+                return;
+            }
+            $empty.style.display = 'none';
+            $results.innerHTML = filtered.map(p => `
+                <div class="col-sm-6">
+                    <div class="post post-grid rounded bordered">
+                        <div class="thumb top-rounded">
+                            ${p.category ? `<a href="/categoria/${escapeHtml(p.category.toLowerCase().replace(/[^a-z0-9]/g, '-'))}" class="category-badge position-absolute">${escapeHtml(p.category)}</a>` : ''}
+                            <a href="${blogBase}/${p.slug}">
+                                ${p.heroImage ? `<img src="${escapeHtml(p.heroImage)}" alt="${escapeHtml(p.title)}" loading="lazy" />` : ''}
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h5 class="post-title mt-3 mb-2"><a href="${blogBase}/${p.slug}">${escapeHtml(p.title)}</a></h5>
+                            <p class="excerpt mb-0 small">${escapeHtml(p.description)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        const params = new URLSearchParams(location.search);
+        const initialQ = params.get('q') || '';
+        $input.value = initialQ;
+        render(search(initialQ), initialQ);
+
+        $form.addEventListener('submit', e => {
+            e.preventDefault();
+            const q = $input.value;
+            const url = new URL(location.href);
+            url.searchParams.set('q', q);
+            history.replaceState(null, '', url);
+            render(search(q), q);
+        });
+    </script>
+</BaseLayout>

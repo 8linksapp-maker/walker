@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../../lib/postUrl';
 import { getCollection } from 'astro:content';
 import PostCardList from '../ui/PostCardList.astro';
 
@@ -29,7 +30,7 @@ const recentPosts = otherPosts.slice(0, 4);
         {featuredPost ? (
           <article class="group relative rounded-2xl overflow-hidden bg-white shadow-lg h-full min-h-[400px]">
             <!-- Imagem com overlay -->
-            <a href={`/blog/${featuredPost.slug}`} class="block relative overflow-hidden h-full">
+            <a href={`${BLOG_BASE}/${featuredPost.slug}`} class="block relative overflow-hidden h-full">
               {featuredPost.data.heroImage ? (
                 <img
                   src={featuredPost.data.heroImage}

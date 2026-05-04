@@ -34,6 +34,43 @@ function invalidateCache(path: string) {
     readCache.delete(dir);
 }
 
+/**
+ * Sincroniza vercel.json com redirect canonico baseado no postUrlPrefix.
+ * Quando aluno escolhe URL limpa (postUrlPrefix=''), adiciona redirect 301 /blog/:slug* -> /:slug*
+ * para preservar SEO de URLs antigas indexadas no Google.
+ */
+async function syncBlogPrefixRedirect(siteConfigContent: string, repo: string, headers: Record<string, string>) {
+    try {
+        const siteConfig = JSON.parse(siteConfigContent);
+        const useCleanUrls = siteConfig?.postUrlPrefix === '';
+        const vercelUrl = `https://api.github.com/repos/${repo}/contents/vercel.json`;
+        let vercelConfig: any = {};
+        let vercelSha: string | undefined;
+        try {
+            const r = await fetch(vercelUrl, { headers });
+            if (r.ok) {
+                const d = await r.json();
+                vercelSha = d.sha;
+                vercelConfig = JSON.parse(Buffer.from(d.content, 'base64').toString('utf-8'));
+            }
+        } catch {}
+        const redirects = Array.isArray(vercelConfig.redirects) ? vercelConfig.redirects : [];
+        const filtered = redirects.filter((r: any) => !(r?.source === '/blog/:slug*' && r?.destination === '/:slug*'));
+        if (useCleanUrls) {
+            filtered.push({ source: '/blog/:slug*', destination: '/:slug*', permanent: true });
+        }
+        // Se nao mudou, nao escreve
+        if (JSON.stringify(filtered) === JSON.stringify(redirects)) return;
+        vercelConfig.redirects = filtered;
+        const body: any = {
+            message: 'CMS: Sync postUrlPrefix redirect',
+            content: Buffer.from(JSON.stringify(vercelConfig, null, 2)).toString('base64'),
+        };
+        if (vercelSha) body.sha = vercelSha;
+        await fetch(vercelUrl, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    } catch {}
+}
+
 /** Modo dev: lê/escreve arquivos locais sem precisar do GitHub */
 async function handleDev(action: string, path: string, content?: string, isBase64?: boolean): Promise<Response> {
     const absPath = nodePath.join(PROJECT_ROOT, path);
@@ -180,6 +217,11 @@ export const POST: APIRoute = async ({ request }) => {
                 }
                 const responseData = await res.json();
                 invalidateCache(path); // Invalida cache após escrita
+                // Sync vercel.json redirect quando siteConfig mudar
+                if (path === 'src/data/siteConfig.json') {
+                    const decoded = isBase64 ? Buffer.from(content, 'base64').toString('utf-8') : content;
+                    syncBlogPrefixRedirect(decoded, repo, headers).catch(() => {});
+                }
                 return new Response(JSON.stringify({ success: true, sha: responseData.content?.sha }), { status: 200 });
             }
 

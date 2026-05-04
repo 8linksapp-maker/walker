@@ -23,6 +23,8 @@ const selectedFont = fontMap[siteConfig.theme?.font || 'poppins'] || fontMap.pop
 const primaryColor = siteConfig.theme?.primary || '#FE4F70';
 const accentColor = siteConfig.theme?.accent || '#FFA387';
 const darkColor = siteConfig.theme?.dark || '#203656';
+const textColor = siteConfig.theme?.text || '';
+const headingColor = siteConfig.theme?.heading || '';
 const categoriesData = readData('categories.json', []);
 const menuItems: any[] = readData('menu.json', { items: [] }).items || [];
 
@@ -96,6 +98,9 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
       --walker-font-heading: "${selectedFont.heading}", sans-serif;
       --walker-font-body: "${selectedFont.body}", sans-serif;
     }
+    ${textColor ? `body, p, .post-content, .post-content p, .post-content li { color: ${textColor} !important; }` : ''}
+    ${headingColor ? `h1, h2, h3, h4, h5, h6, .post-content h1, .post-content h2, .post-content h3, .post-content h4 { color: ${headingColor} !important; }` : ''}
+    ${siteConfig.hidePostDate ? '.post-date { display: none !important; }' : ''}
   </style>`} />
   <!-- Head plugins: GA, Meta Pixel, AdSense -->
   <HeadPlugins />
@@ -249,7 +254,7 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
     <div class="text-center">
       <h3 class="mb-4 mt-0">Pressione ESC para fechar</h3>
     </div>
-    <form class="d-flex search-form" action="/blog">
+    <form class="d-flex search-form" action="/search">
       <input class="form-control me-2" type="search" name="q" placeholder="Buscar e pressione Enter ..." aria-label="Search">
       <button class="btn btn-default btn-lg" type="submit"><i class="icon-magnifier"></i></button>
     </form>

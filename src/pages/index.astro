@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../lib/postUrl';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
@@ -90,15 +91,15 @@ function formatDate(date: Date) {
                 {featuredPost.data.category && (
                   <a href={`/categoria/${featuredPost.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{featuredPost.data.category}</a>
                 )}
-                <h2 class="post-title">
-                  <a href={`/blog/${featuredPost.slug}`}>{featuredPost.data.title}</a>
-                </h2>
+                <h1 class="post-title">
+                  <a href={`${BLOG_BASE}/${featuredPost.slug}`}>{featuredPost.data.title}</a>
+                </h1>
                 <ul class="meta list-inline mb-0">
                   <li class="list-inline-item"><a href="/sobre">{featuredPost.data.author || siteConfig.author}</a></li>
                   <li class="list-inline-item">{formatDate(featuredPost.data.pubDate)}</li>
                 </ul>
               </div>
-              <a href={`/blog/${featuredPost.slug}`}>
+              <a href={`${BLOG_BASE}/${featuredPost.slug}`}>
                 <div class="thumb rounded">
                   <div
                     class="inner data-bg-image"
@@ -131,14 +132,14 @@ function formatDate(date: Date) {
                 {tabPosts.map(post => (
                   <div class="post post-list-sm circle">
                     <div class="thumb circle">
-                      <a href={`/blog/${post.slug}`}>
+                      <a href={`${BLOG_BASE}/${post.slug}`}>
                         <div class="inner">
                           <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}/80/80`} alt={post.data.title} />
                         </div>
                       </a>
                     </div>
                     <div class="details clearfix">
-                      <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                      <h6 class="post-title my-0"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h6>
                       <ul class="meta list-inline mt-1 mb-0">
                         <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                       </ul>
@@ -151,14 +152,14 @@ function formatDate(date: Date) {
                 {tabPosts.map(post => (
                   <div class="post post-list-sm circle">
                     <div class="thumb circle">
-                      <a href={`/blog/${post.slug}`}>
+                      <a href={`${BLOG_BASE}/${post.slug}`}>
                         <div class="inner">
                           <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}r/80/80`} alt={post.data.title} />
                         </div>
                       </a>
                     </div>
                     <div class="details clearfix">
-                      <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                      <h6 class="post-title my-0"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h6>
                       <ul class="meta list-inline mt-1 mb-0">
                         <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                       </ul>
@@ -200,7 +201,7 @@ function formatDate(date: Date) {
                           <a href={`/categoria/${editorPick.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{editorPick.data.category}</a>
                         )}
                         <span class="post-format"><i class="icon-picture"></i></span>
-                        <a href={`/blog/${editorPick.slug}`}>
+                        <a href={`${BLOG_BASE}/${editorPick.slug}`}>
                           <div class="inner">
                             <img src={editorPick.data.heroImage || `https://picsum.photos/seed/${editorPick.slug}lg/600/400`} alt={editorPick.data.title} />
                           </div>
@@ -210,7 +211,7 @@ function formatDate(date: Date) {
                         <li class="list-inline-item"><a href="/sobre">{editorPick.data.author || siteConfig.author}</a></li>
                         <li class="list-inline-item">{formatDate(editorPick.data.pubDate)}</li>
                       </ul>
-                      <h5 class="post-title mb-3 mt-3"><a href={`/blog/${editorPick.slug}`}>{editorPick.data.title}</a></h5>
+                      <h5 class="post-title mb-3 mt-3"><a href={`${BLOG_BASE}/${editorPick.slug}`}>{editorPick.data.title}</a></h5>
                       <p class="excerpt mb-0">{editorPick.data.description}</p>
                     </div>
                   )}
@@ -220,14 +221,14 @@ function formatDate(date: Date) {
                   {editorSidePosts.map(post => (
                     <div class="post post-list-sm square">
                       <div class="thumb rounded">
-                        <a href={`/blog/${post.slug}`}>
+                        <a href={`${BLOG_BASE}/${post.slug}`}>
                           <div class="inner">
                             <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}sm/120/90`} alt={post.data.title} />
                           </div>
                         </a>
                       </div>
                       <div class="details clearfix">
-                        <h6 class="post-title my-0"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h6>
+                        <h6 class="post-title my-0"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h6>
                         <ul class="meta list-inline mt-1 mb-0">
                           <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                         </ul>
@@ -260,7 +261,7 @@ function formatDate(date: Date) {
                             <a href={`/categoria/${trendingPosts[0].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[0].data.category}</a>
                           )}
                           <span class="post-format"><i class="icon-picture"></i></span>
-                          <a href={`/blog/${trendingPosts[0].slug}`}>
+                          <a href={`${BLOG_BASE}/${trendingPosts[0].slug}`}>
                             <div class="inner">
                               <img src={trendingPosts[0].data.heroImage || `https://picsum.photos/seed/${trendingPosts[0].slug}tr/600/400`} alt={trendingPosts[0].data.title} />
                             </div>
@@ -270,20 +271,20 @@ function formatDate(date: Date) {
                           <li class="list-inline-item"><a href="/sobre">{trendingPosts[0].data.author || siteConfig.author}</a></li>
                           <li class="list-inline-item">{formatDate(trendingPosts[0].data.pubDate)}</li>
                         </ul>
-                        <h5 class="post-title mb-3 mt-3"><a href={`/blog/${trendingPosts[0].slug}`}>{trendingPosts[0].data.title}</a></h5>
+                        <h5 class="post-title mb-3 mt-3"><a href={`${BLOG_BASE}/${trendingPosts[0].slug}`}>{trendingPosts[0].data.title}</a></h5>
                         <p class="excerpt mb-0">{trendingPosts[0].data.description}</p>
                       </div>
                       {trendingPosts[1] && (
                         <div class="post post-list-sm square before-seperator">
                           <div class="thumb rounded">
-                            <a href={`/blog/${trendingPosts[1].slug}`}>
+                            <a href={`${BLOG_BASE}/${trendingPosts[1].slug}`}>
                               <div class="inner">
                                 <img src={trendingPosts[1].data.heroImage || `https://picsum.photos/seed/${trendingPosts[1].slug}sm/120/90`} alt={trendingPosts[1].data.title} />
                               </div>
                             </a>
                           </div>
                           <div class="details clearfix">
-                            <h6 class="post-title my-0"><a href={`/blog/${trendingPosts[1].slug}`}>{trendingPosts[1].data.title}</a></h6>
+                            <h6 class="post-title my-0"><a href={`${BLOG_BASE}/${trendingPosts[1].slug}`}>{trendingPosts[1].data.title}</a></h6>
                             <ul class="meta list-inline mt-1 mb-0">
                               <li class="list-inline-item">{formatDate(trendingPosts[1].data.pubDate)}</li>
                             </ul>
@@ -303,7 +304,7 @@ function formatDate(date: Date) {
                             <a href={`/categoria/${trendingPosts[2].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[2].data.category}</a>
                           )}
                           <span class="post-format"><i class="icon-picture"></i></span>
-                          <a href={`/blog/${trendingPosts[2].slug}`}>
+                          <a href={`${BLOG_BASE}/${trendingPosts[2].slug}`}>
                             <div class="inner">
                               <img src={trendingPosts[2].data.heroImage || `https://picsum.photos/seed/${trendingPosts[2].slug}tr2/600/400`} alt={trendingPosts[2].data.title} />
                             </div>
@@ -313,20 +314,20 @@ function formatDate(date: Date) {
                           <li class="list-inline-item"><a href="/sobre">{trendingPosts[2].data.author || siteConfig.author}</a></li>
                           <li class="list-inline-item">{formatDate(trendingPosts[2].data.pubDate)}</li>
                         </ul>
-                        <h5 class="post-title mb-3 mt-3"><a href={`/blog/${trendingPosts[2].slug}`}>{trendingPosts[2].data.title}</a></h5>
+                        <h5 class="post-title mb-3 mt-3"><a href={`${BLOG_BASE}/${trendingPosts[2].slug}`}>{trendingPosts[2].data.title}</a></h5>
                         <p class="excerpt mb-0">{trendingPosts[2].data.description}</p>
                       </div>
                       {trendingPosts[3] && (
                         <div class="post post-list-sm square before-seperator">
                           <div class="thumb rounded">
-                            <a href={`/blog/${trendingPosts[3].slug}`}>
+                            <a href={`${BLOG_BASE}/${trendingPosts[3].slug}`}>
                               <div class="inner">
                                 <img src={trendingPosts[3].data.heroImage || `https://picsum.photos/seed/${trendingPosts[3].slug}sm2/120/90`} alt={trendingPosts[3].data.title} />
                               </div>
                             </a>
                           </div>
                           <div class="details clearfix">
-                            <h6 class="post-title my-0"><a href={`/blog/${trendingPosts[3].slug}`}>{trendingPosts[3].data.title}</a></h6>
+                            <h6 class="post-title my-0"><a href={`${BLOG_BASE}/${trendingPosts[3].slug}`}>{trendingPosts[3].data.title}</a></h6>
                             <ul class="meta list-inline mt-1 mb-0">
                               <li class="list-inline-item">{formatDate(trendingPosts[3].data.pubDate)}</li>
                             </ul>
@@ -360,13 +361,13 @@ function formatDate(date: Date) {
                       {post.data.category && (
                         <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{post.data.category}</a>
                       )}
-                      <h4 class="post-title"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h4>
+                      <h4 class="post-title"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h4>
                       <ul class="meta list-inline mb-0">
                         <li class="list-inline-item"><a href="/sobre">{post.data.author || siteConfig.author}</a></li>
                         <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                       </ul>
                     </div>
-                    <a href={`/blog/${post.slug}`}>
+                    <a href={`${BLOG_BASE}/${post.slug}`}>
                       <div class="thumb rounded">
                         <div class="inner">
                           <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}ins/600/400`} alt={post.data.title} />
@@ -395,7 +396,7 @@ function formatDate(date: Date) {
                     <div class="post post-list clearfix">
                       <div class="thumb rounded">
                         <span class="post-format-sm"><i class="icon-picture"></i></span>
-                        <a href={`/blog/${post.slug}`}>
+                        <a href={`${BLOG_BASE}/${post.slug}`}>
                           <div class="inner">
                             <img src={post.data.heroImage || `https://picsum.photos/seed/${post.slug}lt/160/120`} alt={post.data.title} />
                           </div>
@@ -409,7 +410,7 @@ function formatDate(date: Date) {
                           )}
                           <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                         </ul>
-                        <h5 class="post-title"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h5>
+                        <h5 class="post-title"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h5>
                         <p class="excerpt mb-0">{post.data.description}</p>
                         <div class="post-bottom clearfix d-flex align-items-center">
                           <div class="social-share me-auto">
@@ -421,7 +422,7 @@ function formatDate(date: Date) {
                             </ul>
                           </div>
                           <div class="more-button float-end">
-                            <a href={`/blog/${post.slug}`}><span class="icon-options"></span></a>
+                            <a href={`${BLOG_BASE}/${post.slug}`}><span class="icon-options"></span></a>
                           </div>
                         </div>
                       </div>

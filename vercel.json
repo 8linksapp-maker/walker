@@ -4,5 +4,8 @@
       "path": "/api/cron/process-sequences",
       "schedule": "0 8 * * *"
     }
+  ],
+  "rewrites": [
+    { "source": "/search/:term", "destination": "/search?q=:term" }
   ]
 }

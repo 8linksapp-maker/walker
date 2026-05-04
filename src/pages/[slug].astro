@@ -1,44 +1,42 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Sidebar from '../../components/Sidebar.astro';
-import EmailInlineBanner from '../../plugins/email-list/EmailInlineBanner.astro';
-import AffiliateProducts from '../../plugins/affiliates/AffiliateProducts.astro';
-import PostSchemaPlugins from '../../plugins/_slots/PostSchemaPlugins.astro';
-import PostBottomPlugins from '../../plugins/_slots/PostBottomPlugins.astro';
-import PostAfterPlugins from '../../plugins/_slots/PostAfterPlugins.astro';
-import SocialShare from '../../plugins/social-share/SocialShare.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import EmailInlineBanner from '../plugins/email-list/EmailInlineBanner.astro';
+import AffiliateProducts from '../plugins/affiliates/AffiliateProducts.astro';
+import PostSchemaPlugins from '../plugins/_slots/PostSchemaPlugins.astro';
+import PostBottomPlugins from '../plugins/_slots/PostBottomPlugins.astro';
+import PostAfterPlugins from '../plugins/_slots/PostAfterPlugins.astro';
+import SocialShare from '../plugins/social-share/SocialShare.astro';
 import { getCollection } from 'astro:content';
-import { readData } from '../../lib/readData';
-const authorsData = readData('authors.json', []);
+import { readData } from '../lib/readData';
+import { BLOG_BASE } from '../lib/postUrl';
 
+const authorsData = readData('authors.json', []);
 const pluginsConfig = readData('pluginsConfig.json', {}) as any;
 const inlineConfig = pluginsConfig?.emailList?.inline;
 const inlineEnabled = inlineConfig?.enabled === true;
 const inlinePosition = Number(inlineConfig?.position ?? 3);
 
 export async function getStaticPaths() {
+  const RESERVED = new Set(['blog', 'sobre', 'contato', 'categoria', 'admin', 'login', 'registrar', 'politica-privacidade', 'termos', 'configuracoes']);
   const siteConfig = readData('siteConfig.json', {}) as any;
-  // Se aluno escolheu URL limpa (sem /blog), nao geramos /blog/X
-  if (siteConfig.postUrlPrefix !== 'blog') return [];
+  if (siteConfig.postUrlPrefix === 'blog') return [];
   const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: post,
-  }));
+  return posts
+    .filter(p => !p.data.draft && !RESERVED.has(p.slug))
+    .map(post => ({ params: { slug: post.slug }, props: post }));
 }
+
 const post = Astro.props;
 const { Content } = await post.render();
 
 const currentAuthor = authorsData.find((a: any) => a.id === post.data.author) || authorsData[0] || {
-  name: 'Equipe',
-  role: 'Redação',
-  avatar: '',
-  bio: ''
+  name: 'Equipe', role: 'Redação', avatar: '', bio: ''
 };
 
 const categorySlug = post.data.category ? post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '';
 const siteConfig = readData('siteConfig.json', {}) as any;
-const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
+const postUrl = `${siteConfig.url || Astro.url.origin}${BLOG_BASE}/${post.slug}`;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.description} image={post.data.heroImage} type="article">
@@ -52,10 +50,8 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
     category={post.data.category}
   />
 
-  <!-- section main content -->
   <section class="main-content mt-3">
     <div class="container-xl">
-
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -67,11 +63,8 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
       </nav>
 
       <div class="row gy-4">
-
         <div class="col-lg-8" style="min-width:0;">
-          <!-- post single -->
           <div class="post post-single">
-            <!-- post header -->
             <div class="post-header">
               <h1 class="title mt-0 mb-3">{post.data.title}</h1>
               <ul class="meta list-inline mb-0">
@@ -90,13 +83,11 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
                 </li>
               </ul>
             </div>
-            <!-- featured image -->
             {post.data.heroImage && (
               <div class="featured-image">
                 <img src={post.data.heroImage} alt={post.data.title} />
               </div>
             )}
-            <!-- post content -->
             <div class="post-content clearfix">
               <Content />
             </div>
@@ -106,7 +97,6 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
               </div>
             )}
             <AffiliateProducts />
-            <!-- post bottom section -->
             <div class="post-bottom">
               <div class="row d-flex align-items-center">
                 <div class="col-md-6 col-12 text-center text-md-start">
@@ -123,7 +113,6 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
 
           <div class="spacer" data-height="50"></div>
 
-          <!-- about author -->
           <div class="about-author padding-30 rounded">
             <div class="thumb">
               {currentAuthor.avatar ? (
@@ -150,56 +139,24 @@ const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
           />
 
           <div class="spacer" data-height="50"></div>
-
-          <!-- section header -->
-          <div class="section-header">
-            <h3 class="section-title">Deixe um Comentário</h3>
-            <img src="/images/wave.svg" class="wave" alt="wave" />
-          </div>
-          <!-- comment form -->
-          <div class="comment-form rounded bordered padding-30">
-            <form id="comment-form" class="comment-form" method="post">
-              <div class="messages"></div>
-              <div class="row">
-                <div class="column col-md-12">
-                  <div class="form-group">
-                    <textarea name="InputComment" id="InputComment" class="form-control" rows="4" placeholder="Seu comentário..." required></textarea>
-                  </div>
-                </div>
-                <div class="column col-md-6">
-                  <div class="form-group">
-                    <input type="text" class="form-control" id="InputName" name="InputName" placeholder="Seu nome" required>
-                  </div>
-                </div>
-                <div class="column col-md-6">
-                  <div class="form-group">
-                    <input type="email" class="form-control" id="InputEmail" name="InputEmail" placeholder="Seu e-mail" required>
-                  </div>
-                </div>
-              </div>
-              <button type="submit" name="submit" id="submit" value="Submit" class="btn btn-default">Enviar Comentário</button>
-            </form>
-          </div>
         </div>
 
         <div class="col-lg-4">
           <Sidebar />
         </div>
-
       </div>
     </div>
   </section>
 
   <script is:inline>
-  // Substitui &nbsp; (espaço não-quebrável do Quill) por espaços normais nos artigos já salvos
   (function() {
     var postContent = document.querySelector('.post-content');
     if (!postContent) return;
     var walker = document.createTreeWalker(postContent, NodeFilter.SHOW_TEXT, null);
     var node;
     while ((node = walker.nextNode())) {
-      if (node.nodeValue && node.nodeValue.indexOf('\u00A0') !== -1) {
-        node.nodeValue = node.nodeValue.replace(/\u00A0/g, ' ');
+      if (node.nodeValue && node.nodeValue.indexOf(' ') !== -1) {
+        node.nodeValue = node.nodeValue.replace(/ /g, ' ');
       }
     }
   })();

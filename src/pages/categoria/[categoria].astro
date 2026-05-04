@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../../lib/postUrl';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import { readData } from '../../lib/readData';
@@ -62,7 +63,7 @@ const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
                 <div class="post post-grid rounded bordered">
                   <div class="thumb top-rounded">
                     <a href={`/categoria/${categorySlug}`} class="category-badge position-absolute">{categoryName}</a>
-                    <a href={`/blog/${post.slug}`}>
+                    <a href={`${BLOG_BASE}/${post.slug}`}>
                       <div class="inner">
                         {post.data.heroImage ? (
                           <img src={post.data.heroImage} alt={post.data.title} />
@@ -78,7 +79,7 @@ const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
                         {post.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </li>
                     </ul>
-                    <h5 class="post-title mb-3 mt-3"><a href={`/blog/${post.slug}`}>{post.data.title}</a></h5>
+                    <h5 class="post-title mb-3 mt-3"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h5>
                     {post.data.description && (
                       <p class="excerpt mb-0">{post.data.description}</p>
                     )}
@@ -96,7 +97,7 @@ const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
                       </ul>
                     </div>
                     <div class="more-button float-end">
-                      <a href={`/blog/${post.slug}`}><span class="icon-options"></span></a>
+                      <a href={`${BLOG_BASE}/${post.slug}`}><span class="icon-options"></span></a>
                     </div>
                   </div>
                 </div>

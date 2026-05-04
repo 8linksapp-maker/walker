@@ -12,6 +12,29 @@ export const prerender = false;
 const REDIRECTS_PATH = 'src/data/redirects.json';
 const VERCEL_JSON_PATH = 'vercel.json';
 
+/** Extrai apenas o pathname caso o aluno cole URL completa (https://site.com/x → /x) */
+function toPath(input: string): string {
+    if (!input) return input;
+    const v = String(input).trim();
+    if (/^https?:\/\//i.test(v)) {
+        try {
+            const u = new URL(v);
+            return (u.pathname + u.search + u.hash).replace(/\/+$/, '') || '/';
+        } catch {
+            return v;
+        }
+    }
+    return v.startsWith('/') ? v : '/' + v;
+}
+
+function sanitizeRedirects(list: any[]): any[] {
+    return (list || []).map(r => ({
+        ...r,
+        from: r?.from ? toPath(r.from) : r?.from,
+        to: r?.to ? toPath(r.to) : r?.to,
+    }));
+}
+
 /** Sincroniza redirects ativos pro vercel.json (funciona em static mode) */
 async function syncVercelJson(redirects: any[]) {
     try {
@@ -24,8 +47,8 @@ async function syncVercelJson(redirects: any[]) {
         const vercelRedirects = redirects
             .filter((r: any) => r.enabled && r.from && r.to)
             .map((r: any) => ({
-                source: r.from.replace(/\/+$/, '') || '/',
-                destination: r.to,
+                source: toPath(r.from),
+                destination: toPath(r.to),
                 permanent: r.type === 301,
             }));
 
@@ -52,13 +75,14 @@ export const GET: APIRoute = async () => {
 export const PUT: APIRoute = async ({ request }) => {
     try {
         const body = await request.json();
-        const ok = await writeFileToRepo(REDIRECTS_PATH, JSON.stringify(body, null, 2), {
+        const sanitized = sanitizeRedirects(Array.isArray(body) ? body : []);
+        const ok = await writeFileToRepo(REDIRECTS_PATH, JSON.stringify(sanitized, null, 2), {
             message: 'CMS: Update redirects',
         });
         if (!ok) return new Response(JSON.stringify({ error: 'Falha ao salvar' }), { status: 500 });
 
         // Sync to vercel.json for static mode compatibility
-        await syncVercelJson(body);
+        await syncVercelJson(sanitized);
 
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (err: any) {

@@ -20,7 +20,7 @@ const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : cat
       <!-- Logo -->
       <a href="/" class="flex items-center gap-2 flex-shrink-0">
         {siteConfig.logo ? (
-          <img src={siteConfig.logo} alt={siteConfig.name} class="h-8 w-auto object-contain" />
+          <img src={siteConfig.logo} alt={siteConfig.name} class="w-auto object-contain" style={`height: ${siteConfig.logoHeight || 32}px; max-height: ${siteConfig.logoHeight || 32}px`} />
         ) : (
           <span class="text-xl font-bold text-primary-500">{siteConfig.name}</span>
         )}

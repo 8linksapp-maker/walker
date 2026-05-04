@@ -1,4 +1,5 @@
 ---
+import { BLOG_BASE } from '../../lib/postUrl';
 interface Props {
   title: string;
   slug: string;
@@ -20,7 +21,7 @@ const { title, slug, heroImage, category, pubDate, index } = Astro.props;
   )}
 
   <!-- Thumbnail -->
-  <a href={`/blog/${slug}`} class="flex-shrink-0 w-16 h-14 rounded-lg overflow-hidden bg-gray-100">
+  <a href={`${BLOG_BASE}/${slug}`} class="flex-shrink-0 w-16 h-14 rounded-lg overflow-hidden bg-gray-100">
     {heroImage ? (
       <img
         src={heroImage}
@@ -38,9 +39,9 @@ const { title, slug, heroImage, category, pubDate, index } = Astro.props;
       <span class="text-primary-500 text-[10px] font-bold uppercase tracking-wide">{category}</span>
     )}
     <h4 class="font-semibold text-slate-800 text-xs leading-snug line-clamp-2 group-hover:text-primary-500 transition-colors mt-0.5">
-      <a href={`/blog/${slug}`}>{title}</a>
+      <a href={`${BLOG_BASE}/${slug}`}>{title}</a>
     </h4>
-    <p class="text-slate-400 text-[10px] mt-1">
+    <p class="text-slate-400 text-[10px] mt-1 post-date">
       {pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
     </p>
   </div>
