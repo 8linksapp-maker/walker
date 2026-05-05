@@ -14,9 +14,7 @@ import { readData } from '../../lib/readData';
 const pluginsConfig = readData('pluginsConfig.json', {}) as any;
 const config = pluginsConfig?.affiliates;
 
-// Default true se config.affiliates ausente — evita que produtos cadastrados deixem de
-// renderizar só porque o aluno nunca abriu a aba "Configurações" pra salvar.
-const enabled = config?.enabled !== false;
+const enabled = config?.enabled === true;
 const products = enabled ? readData('affiliateProducts.json', []) as any[] : [];
 const activeProducts = products.filter((p: any) => p.enabled !== false);
 ---
@@ -349,14 +347,32 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
 
     function appendTag(url: string): string {
       if (!amazonTag || !url) return url;
+      // Só aplica o tag em URLs Amazon — outras lojas usam links como vieram
       try {
         const u = new URL(url);
+        if (!/(^|\.)amazon\./i.test(u.hostname)) return url;
         u.searchParams.set('tag', amazonTag);
         return u.toString();
       } catch {
+        if (!/amazon\./i.test(url)) return url;
         const sep = url.includes('?') ? '&' : '?';
         return `${url}${sep}tag=${amazonTag}`;
       }
+    }
+
+    function pickMainUrl(p: any): string {
+      const main = (p.amazonUrl || '').trim();
+      if (main) return main;
+      const first = (p.extraLinks || []).find((l: any) => l && (l.url || '').trim());
+      return first ? first.url : '';
+    }
+
+    function getCtaLinks(p: any): { label: string; url: string }[] {
+      const main = (p.amazonUrl || '').trim();
+      if (main) return p.extraLinks || [];
+      // Quando não tem URL principal, primeiro extraLink já virou o CTA principal — sobram os demais
+      const list = (p.extraLinks || []).filter((l: any) => l && (l.url || '').trim());
+      return list.slice(1);
     }
 
     function renderStars(rating: number): string {
@@ -482,27 +498,33 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
       const ctaWrap = document.createElement('div');
       ctaWrap.className = 'aff-cta-wrap';
 
-      const cta = document.createElement('a');
-      cta.className = 'aff-cta';
-      cta.href = appendTag(p.amazonUrl || '#');
-      cta.target = '_blank';
-      cta.rel = 'nofollow noopener sponsored';
-      cta.style.background = buttonColor;
-      cta.textContent = (p.buttonText || defaultButtonText) + ' →';
-      ctaWrap.appendChild(cta);
+      const mainUrl = pickMainUrl(p);
+      const usingExtraAsMain = !p.amazonUrl?.trim() && mainUrl;
+      const firstExtra = (p.extraLinks || []).find((l: any) => l && (l.url || '').trim());
 
-      if (p.extraLinks && p.extraLinks.length > 0) {
-        p.extraLinks.forEach((link: { label: string; url: string }) => {
-          if (!link.label || !link.url) return;
-          const sec = document.createElement('a');
-          sec.className = 'aff-cta-secondary';
-          sec.href = link.url;
-          sec.target = '_blank';
-          sec.rel = 'nofollow noopener sponsored';
-          sec.textContent = link.label + ' →';
-          ctaWrap.appendChild(sec);
-        });
+      if (mainUrl) {
+        const cta = document.createElement('a');
+        cta.className = 'aff-cta';
+        cta.href = appendTag(mainUrl);
+        cta.target = '_blank';
+        cta.rel = 'nofollow noopener sponsored';
+        cta.style.background = buttonColor;
+        const label = p.buttonText || (usingExtraAsMain && firstExtra?.label ? `Ver na ${firstExtra.label}` : defaultButtonText);
+        cta.textContent = label + ' →';
+        ctaWrap.appendChild(cta);
       }
+
+      const secondaryLinks = getCtaLinks(p);
+      secondaryLinks.forEach((link: { label: string; url: string }) => {
+        if (!link.label || !link.url) return;
+        const sec = document.createElement('a');
+        sec.className = 'aff-cta-secondary';
+        sec.href = link.url;
+        sec.target = '_blank';
+        sec.rel = 'nofollow noopener sponsored';
+        sec.textContent = link.label + ' →';
+        ctaWrap.appendChild(sec);
+      });
 
       wrap.appendChild(ctaWrap);
 
@@ -550,31 +572,36 @@ const activeProducts = products.filter((p: any) => p.enabled !== false);
           body.appendChild(price);
         }
 
-        const cta = document.createElement('a');
-        cta.className = 'aff-compare-cta';
-        cta.href = appendTag(p.amazonUrl || '#');
-        cta.target = '_blank';
-        cta.rel = 'nofollow noopener sponsored';
-        cta.style.background = buttonColor;
-        cta.textContent = (p.buttonText || defaultButtonText) + ' →';
-        body.appendChild(cta);
+        const mainUrl = pickMainUrl(p);
+        const usingExtraAsMain = !p.amazonUrl?.trim() && mainUrl;
+        const firstExtra = (p.extraLinks || []).find((l: any) => l && (l.url || '').trim());
 
-        if (p.extraLinks && p.extraLinks.length > 0) {
-          p.extraLinks.forEach((link: { label: string; url: string }) => {
-            if (!link.label || !link.url) return;
-            const sec = document.createElement('a');
-            sec.className = 'aff-compare-cta';
-            sec.href = link.url;
-            sec.target = '_blank';
-            sec.rel = 'nofollow noopener sponsored';
-            sec.style.background = '#fff';
-            sec.style.color = '#374151';
-            sec.style.border = '1.5px solid #e2e8f0';
-            sec.style.marginTop = '0.4rem';
-            sec.textContent = link.label + ' →';
-            body.appendChild(sec);
-          });
+        if (mainUrl) {
+          const cta = document.createElement('a');
+          cta.className = 'aff-compare-cta';
+          cta.href = appendTag(mainUrl);
+          cta.target = '_blank';
+          cta.rel = 'nofollow noopener sponsored';
+          cta.style.background = buttonColor;
+          const label = p.buttonText || (usingExtraAsMain && firstExtra?.label ? `Ver na ${firstExtra.label}` : defaultButtonText);
+          cta.textContent = label + ' →';
+          body.appendChild(cta);
         }
+
+        getCtaLinks(p).forEach((link: { label: string; url: string }) => {
+          if (!link.label || !link.url) return;
+          const sec = document.createElement('a');
+          sec.className = 'aff-compare-cta';
+          sec.href = link.url;
+          sec.target = '_blank';
+          sec.rel = 'nofollow noopener sponsored';
+          sec.style.background = '#fff';
+          sec.style.color = '#374151';
+          sec.style.border = '1.5px solid #e2e8f0';
+          sec.style.marginTop = '0.4rem';
+          sec.textContent = link.label + ' →';
+          body.appendChild(sec);
+        });
 
         card.appendChild(body);
         grid.appendChild(card);
