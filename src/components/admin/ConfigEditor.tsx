@@ -56,7 +56,9 @@ export default function ConfigEditor() {
             if (typeof configCopy.logo === 'string' && configCopy.logo.startsWith('blob:')) configCopy.logo = '';
             if (typeof configCopy.favicon === 'string' && configCopy.favicon.startsWith('blob:')) configCopy.favicon = '';
             const res = await githubApi('write', 'src/data/siteConfig.json', { content: JSON.stringify(configCopy, null, 2), sha: fileSha, message: 'CMS: Update siteConfig.json' });
-            setFileSha(res.sha); setPendingLogo(null); setPendingFavicon(null);
+            setFileSha(res.sha);
+            setConfig(configCopy);
+            setPendingLogo(null); setPendingFavicon(null);
             triggerToast('Configurações salvas com sucesso!', 'success', 100);
         } catch (err: any) {
             setError(err.message); triggerToast(`Erro: ${err.message}`, 'error');
