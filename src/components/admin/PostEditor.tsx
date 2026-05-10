@@ -21,6 +21,51 @@ export default function PostEditor({ filePath }: PostEditorProps) {
     const [isPreview, setIsPreview] = useState(false);
     const [pendingUploads, setPendingUploads] = useState<Record<string, File>>({});
     const [QuillEditor, setQuillEditor] = useState<any>(null);
+    const quillRef = React.useRef<any>(null);
+
+    const insertImageInEditor = (file: File) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const dataUrl = reader.result as string;
+            const editor = quillRef.current?.getEditor?.();
+            if (!editor) return;
+            const range = editor.getSelection(true);
+            editor.insertEmbed(range?.index ?? editor.getLength(), 'image', dataUrl, 'user');
+            editor.setSelection((range?.index ?? 0) + 1, 0);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleImageButton = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = () => {
+            const f = input.files?.[0];
+            if (f) insertImageInEditor(f);
+        };
+        input.click();
+    };
+
+    const quillModules = React.useMemo(() => ({
+        toolbar: {
+            container: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image'],
+                [{ align: [] }],
+                ['clean'],
+            ],
+            handlers: {
+                image: handleImageButton,
+            },
+        },
+        clipboard: { matchVisual: false },
+    }), []);
+
+    const quillFormats = ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'blockquote', 'code-block', 'link', 'image', 'align'];
 
     const formatDateForInput = (dateStr: string) => {
         try {
@@ -214,9 +259,12 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                             <div className="prose prose-slate max-w-none border border-slate-200 rounded-xl p-6 min-h-[300px]" dangerouslySetInnerHTML={{ __html: post.content }} />
                         ) : QuillEditor ? (
                             <QuillEditor
+                                ref={quillRef}
                                 theme="snow"
                                 value={post.content}
                                 onChange={(val: string) => setPost(p => ({ ...p, content: val }))}
+                                modules={quillModules}
+                                formats={quillFormats}
                                 style={{ minHeight: '300px' }}
                             />
                         ) : (
