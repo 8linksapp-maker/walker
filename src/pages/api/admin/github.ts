@@ -190,34 +190,47 @@ export const POST: APIRoute = async ({ request }) => {
 
             case 'write': {
                 if (content === undefined) throw new Error("Ação 'write' exige o campo 'content'.");
-                const writeBody: Record<string, any> = {
+                const baseBody: Record<string, any> = {
                     message: message || `Update ${path} via CMS`,
                     content: isBase64 ? content : Buffer.from(content).toString('base64'),
                 };
-                // Auto-fetch sha if not provided (needed when file already exists)
-                let writeSha = sha;
-                if (!writeSha) {
+
+                async function fetchCurrentSha(): Promise<string | undefined> {
                     try {
                         const existing = await fetch(githubUrl, { headers });
                         if (existing.ok) {
                             const existingData = await existing.json();
-                            if (existingData.sha) writeSha = existingData.sha;
+                            return existingData?.sha;
                         }
                     } catch {}
+                    return undefined;
                 }
-                if (writeSha) writeBody.sha = writeSha;
-                res = await fetch(githubUrl, {
-                    method: 'PUT',
-                    headers: { ...headers, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(writeBody),
-                });
+
+                // 1ª tentativa: usa sha do cliente, ou auto-fetch se não veio
+                let writeSha = sha || (await fetchCurrentSha());
+                async function attemptWrite(useSha: string | undefined) {
+                    const writeBody = { ...baseBody, ...(useSha ? { sha: useSha } : {}) };
+                    return await fetch(githubUrl, {
+                        method: 'PUT',
+                        headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(writeBody),
+                    });
+                }
+
+                res = await attemptWrite(writeSha);
+                // SHA stale (cliente segurou cache antigo, ou outra aba já salvou) → refetch + retry
+                if (!res.ok && (res.status === 409 || res.status === 422)) {
+                    const fresh = await fetchCurrentSha();
+                    if (fresh && fresh !== writeSha) {
+                        res = await attemptWrite(fresh);
+                    }
+                }
                 if (!res.ok) {
-                    const e = await res.json();
-                    throw new Error(`Erro ao salvar ${path}: ${e.message}`);
+                    const e = await res.json().catch(() => ({}));
+                    throw new Error(`Erro ao salvar ${path}: ${e.message || res.status}`);
                 }
                 const responseData = await res.json();
-                invalidateCache(path); // Invalida cache após escrita
-                // Sync vercel.json redirect quando siteConfig mudar
+                invalidateCache(path);
                 if (path === 'src/data/siteConfig.json') {
                     const decoded = isBase64 ? Buffer.from(content, 'base64').toString('utf-8') : content;
                     syncBlogPrefixRedirect(decoded, repo, headers).catch(() => {});

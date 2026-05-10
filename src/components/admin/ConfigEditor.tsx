@@ -299,6 +299,43 @@ export default function ConfigEditor() {
                 </div>
             </div>
 
+            {/* Feed do Instagram (home) */}
+            <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-slate-900 mb-2 border-b border-slate-100 pb-4">Galeria do Instagram (rodapé do site)</h3>
+                <p className="text-sm text-slate-500 mb-6">Cole até 6 URLs de imagens (ex: capturas dos seus posts no Instagram). Se vazio, mostra placeholders. Cada imagem linka pro perfil definido em Redes Sociais &gt; instagram.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => {
+                        const arr = Array.isArray(config?.instagramFeed) ? config.instagramFeed : [];
+                        const item = arr[i] || { src: '', link: '' };
+                        const src = typeof item === 'string' ? item : (item.src || '');
+                        const link = typeof item === 'string' ? '' : (item.link || '');
+                        const updateItem = (key: 'src' | 'link', val: string) => {
+                            const next = [...arr];
+                            const cur = next[i];
+                            const obj = typeof cur === 'string' ? { src: cur, link: '' } : { ...(cur || {}) };
+                            obj[key] = val;
+                            next[i] = obj;
+                            setConfig({ ...config, instagramFeed: next });
+                        };
+                        return (
+                            <div key={i} className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2">
+                                <div className="flex items-center gap-3">
+                                    {src ? (
+                                        <img src={src} alt={`Insta ${i+1}`} className="w-14 h-14 rounded-md object-cover border border-slate-200" />
+                                    ) : (
+                                        <div className="w-14 h-14 rounded-md bg-slate-200 flex items-center justify-center text-slate-400 text-xs">{i+1}</div>
+                                    )}
+                                    <div className="flex-1 space-y-2">
+                                        <input type="url" placeholder="URL da imagem" value={src} onChange={e => updateItem('src', e.target.value)} className={`${inputClass} font-mono text-xs`} />
+                                        <input type="url" placeholder="Link do post (opcional)" value={link} onChange={e => updateItem('link', e.target.value)} className={`${inputClass} font-mono text-xs`} />
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* Rodape (Footer) */}
             <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
                 <h3 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-100 pb-4">Rodape (Footer)</h3>

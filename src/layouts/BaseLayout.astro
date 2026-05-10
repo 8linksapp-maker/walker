@@ -203,21 +203,30 @@ const socialImage = image?.startsWith('http') ? image : image ? new URL(image, s
 
   <!-- instagram feed -->
   {siteConfig.social?.instagram && (
-    <div class="instagram">
-      <div class="container-xl">
-        <a href={siteConfig.social.instagram} class="btn btn-default btn-instagram" target="_blank" rel="noopener">
-          @{siteConfig.social.instagram.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '')} no Instagram
-        </a>
-        <div class="instagram-feed d-flex flex-wrap">
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta1/300/300" alt="instagram" /></a></div>
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta2/300/300" alt="instagram" /></a></div>
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta3/300/300" alt="instagram" /></a></div>
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta4/300/300" alt="instagram" /></a></div>
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta5/300/300" alt="instagram" /></a></div>
-          <div class="insta-item col-sm-2 col-6 col-md-2"><a href={siteConfig.social.instagram}><img src="https://picsum.photos/seed/insta6/300/300" alt="instagram" /></a></div>
+    (() => {
+      const customFeed = Array.isArray(siteConfig.instagramFeed)
+        ? siteConfig.instagramFeed.filter((it: any) => it && (typeof it === 'string' ? it.trim() : (it.src || '').trim()))
+        : [];
+      const feed = customFeed.length > 0
+        ? customFeed.slice(0, 6).map((it: any) => typeof it === 'string' ? { src: it, link: siteConfig.social.instagram } : { src: it.src, link: it.link || siteConfig.social.instagram })
+        : Array.from({ length: 6 }).map((_, i) => ({ src: `https://picsum.photos/seed/insta${i+1}/300/300`, link: siteConfig.social.instagram }));
+      return (
+        <div class="instagram">
+          <div class="container-xl">
+            <a href={siteConfig.social.instagram} class="btn btn-default btn-instagram" target="_blank" rel="noopener">
+              @{siteConfig.social.instagram.replace('https://instagram.com/', '').replace('https://www.instagram.com/', '')} no Instagram
+            </a>
+            <div class="instagram-feed d-flex flex-wrap">
+              {feed.map((item: any) => (
+                <div class="insta-item col-sm-2 col-6 col-md-2">
+                  <a href={item.link} target="_blank" rel="noopener"><img src={item.src} alt="instagram" loading="lazy" /></a>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      );
+    })()
   )}
 
   <!-- footer -->
