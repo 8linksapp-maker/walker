@@ -340,6 +340,59 @@ export default function ConfigEditor() {
                     </div>
                 </div>
             </div>
+
+            {/* Robots.txt */}
+            <div className="p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                <h3 className="text-xl font-bold text-slate-900 mb-2 flex items-center gap-2">🤖 Robots.txt</h3>
+                <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 pb-4">
+                    Controla quais páginas os buscadores (Google, Bing) podem indexar. <code className="bg-slate-100 px-1 rounded">/admin</code> e <code className="bg-slate-100 px-1 rounded">/api</code> já são bloqueados por padrão. O sitemap é linkado automaticamente.
+                </p>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <div>
+                            <label className="text-sm font-bold text-slate-700">Bloquear todos os buscadores</label>
+                            <p className="text-xs text-slate-500 mt-0.5">Use no modo desenvolvimento — impede Google/Bing de indexar o site enquanto você ajusta. Desligue antes de divulgar.</p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={!!config?.robots?.noindex}
+                            onClick={() => setConfig({ ...config, robots: { ...(config?.robots || {}), noindex: !config?.robots?.noindex } })}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-4 ${config?.robots?.noindex ? 'bg-red-600' : 'bg-slate-300'}`}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${config?.robots?.noindex ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
+                    </div>
+                    {!config?.robots?.noindex && (
+                        <div>
+                            <label className={labelClass}>Bloquear páginas extras (1 por linha)</label>
+                            <textarea
+                                rows={4}
+                                value={(config?.robots?.extraDisallow || []).join('\n')}
+                                onChange={e => setConfig({
+                                    ...config,
+                                    robots: {
+                                        ...(config?.robots || {}),
+                                        extraDisallow: e.target.value.split('\n').map(s => s.trim()).filter(Boolean),
+                                    }
+                                })}
+                                placeholder="/promocao-secreta&#10;/area-restrita"
+                                className={`${inputClass} font-mono resize-y`}
+                            />
+                            <p className="text-[11px] text-slate-400 mt-1">Outras páginas que você quer esconder dos buscadores (ex: páginas de promoção temporária).</p>
+                        </div>
+                    )}
+                    {config?.url ? (
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <p className="text-xs font-bold text-slate-500 mb-2">Preview / Verificar:</p>
+                            <a href={`${config.url.replace(/\/$/, '')}/robots.txt`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-violet-600 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                {config.url.replace(/\/$/, '')}/robots.txt
+                            </a>
+                        </div>
+                    ) : null}
+                </div>
+            </div>
         </form>
     );
 }
