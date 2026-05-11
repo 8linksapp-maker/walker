@@ -146,8 +146,8 @@ export const POST: APIRoute = async ({ request }) => {
             let friendly = msg;
             if (/InvalidSignature|SignatureDoesNotMatch/i.test(code)) {
                 friendly = 'Secret Key inválida. Confira em afiliados > Configurações > Secret Key.';
-            } else if (/InvalidAccessKeyId|UnrecognizedClientException/i.test(code)) {
-                friendly = 'Access Key inválida. Confira em afiliados > Configurações > Access Key.';
+            } else if (/InvalidAccessKeyId|UnrecognizedClient/i.test(code) || /Access Key ID.*invalid|security token.*invalid/i.test(msg)) {
+                friendly = 'Access Key inválida ou no formato errado. A PAAPI 5.0 exige credenciais que começam com "AKIA..." (geradas em afiliados.amazon.com.br > Ferramentas > Product Advertising API). Se sua chave começa com "amzn1.application-oa2-client...", é credencial de Login with Amazon — não funciona pra importar produtos.';
             } else if (/InvalidPartnerTag|InvalidAssociate/i.test(code)) {
                 friendly = 'Partner Tag inválida. Confira em afiliados > Configurações > Amazon Tag (ex: meusite-20).';
             } else if (/TooManyRequests|RequestThrottled/i.test(code)) {
