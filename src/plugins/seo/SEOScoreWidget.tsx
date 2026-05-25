@@ -24,18 +24,20 @@ interface Check {
 function countWords(html: string): number {
   if (!html) return 0;
   let text = html;
-  // Remove blocos de script/style — o conteúdo dentro confundiria a contagem
+  // Remove blocos completos de script/style (conteúdo dentro não conta)
   text = text.replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ');
   // Remove comentários HTML
   text = text.replace(/<!--[\s\S]*?-->/g, ' ');
-  // Remove todas as tags HTML restantes
+  // Remove todas as tags restantes
   text = text.replace(/<[^>]+>/g, ' ');
-  // Substitui entidades HTML comuns por espaço (&nbsp; &amp; &#160; etc)
-  text = text.replace(/&[a-z#0-9]+;/gi, ' ');
-  // Normaliza qualquer whitespace (inclui   NBSP) em espaço único
+  // Entidades de WHITESPACE viram espaço (separam palavras)
+  text = text.replace(/&(?:nbsp|ensp|emsp|thinsp|zwj|zwnj|#160|#8194|#8195|#8201|#x[Aa]0|#x2002|#x2003);/gi, ' ');
+  // Demais entidades (acentos, símbolos) viram '' — não devem quebrar palavras
+  // (ex: caf&eacute; deve contar como 1 palavra, não 2)
+  text = text.replace(/&(?:[a-z]+|#\d+|#x[0-9a-f]+);/gi, '');
+  // Normaliza qualquer whitespace em espaço único
   text = text.replace(/\s+/g, ' ').trim();
   if (!text) return 0;
-  // Conta tokens não-vazios
   return text.split(/\s+/).filter(Boolean).length;
 }
 
