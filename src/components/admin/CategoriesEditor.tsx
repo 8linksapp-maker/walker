@@ -49,16 +49,52 @@ export default function CategoriesEditor() {
     const saveModalCategory = async () => {
         if (!tempCategory.trim()) { alert('O nome da categoria é obrigatório!'); return; }
         const trimmed = tempCategory.trim();
-        const arr = [...categories];
+
+        // Nova categoria
         if (editingIndex === null) {
-            if (arr.includes(trimmed)) { alert('Esta categoria já existe!'); return; }
-            arr.push(trimmed);
-        } else {
-            arr[editingIndex] = trimmed;
+            if (categories.includes(trimmed)) { alert('Esta categoria já existe!'); return; }
+            const arr = [...categories, trimmed];
+            setCategories(arr);
+            setIsModalOpen(false);
+            await saveToGithub(arr);
+            return;
         }
-        setCategories(arr);
+
+        // Edição
+        const oldName = categories[editingIndex];
+        if (oldName === trimmed) { setIsModalOpen(false); return; } // sem mudança
+        if (categories.some((c, i) => i !== editingIndex && c === trimmed)) {
+            alert('Esta categoria já existe!'); return;
+        }
+
+        // Renomear: chama endpoint server-side que atualiza categories.json + posts
+        // afetados + cria redirect 301 — tudo em uma transação lógica.
         setIsModalOpen(false);
-        await saveToGithub(arr);
+        setSaving(true);
+        triggerToast(`Renomeando "${oldName}" → "${trimmed}" e atualizando posts...`, 'progress', 20);
+        try {
+            const res = await fetch('/api/admin/categories/rename', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oldName, newName: trimmed, createRedirect: true }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error || 'Falha ao renomear');
+            const arr = [...categories];
+            arr[editingIndex] = trimmed;
+            setCategories(arr);
+            const parts = [`Categoria renomeada para "${trimmed}"`];
+            if (data.postsUpdated) parts.push(`${data.postsUpdated} post(s) atualizado(s)`);
+            if (data.redirectsCreated) parts.push(`redirect 301 criado`);
+            triggerToast(parts.join(' · '), 'success', 100);
+            // Recarrega sha do categories.json (porque o endpoint reescreveu)
+            githubApi('read', 'src/data/categories.json').then(d => setFileSha(d.sha)).catch(() => {});
+        } catch (err: any) {
+            setError(err.message);
+            triggerToast(`Erro: ${err.message}`, 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const removeCategory = async (index: number) => {
