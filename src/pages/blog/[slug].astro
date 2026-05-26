@@ -9,7 +9,9 @@ import PostAfterPlugins from '../../plugins/_slots/PostAfterPlugins.astro';
 import SocialShare from '../../plugins/social-share/SocialShare.astro';
 import { getCollection } from 'astro:content';
 import { readData } from '../../lib/readData';
+import { getCategorySlug, normalizeCategories } from '../../lib/categorySlug';
 const authorsData = readData('authors.json', []);
+const allCategories = normalizeCategories(readData('categories.json', []));
 
 const pluginsConfig = readData('pluginsConfig.json', {}) as any;
 const inlineConfig = pluginsConfig?.emailList?.inline;
@@ -36,7 +38,7 @@ const currentAuthor = authorsData.find((a: any) => a.id === post.data.author) ||
   bio: ''
 };
 
-const categorySlug = post.data.category ? post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '';
+const categorySlug = post.data.category ? getCategorySlug(post.data.category, allCategories) : '';
 const siteConfig = readData('siteConfig.json', {}) as any;
 const postUrl = `${siteConfig.url || Astro.url.origin}/blog/${post.slug}`;
 ---

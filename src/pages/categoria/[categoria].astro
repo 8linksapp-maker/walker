@@ -6,26 +6,54 @@ import { readData } from '../../lib/readData';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
+  function slugify(s) {
+    return String(s || '').toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  }
   const categoriesData = readData('categories.json', []);
   const posts = await getCollection('blog');
-  const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
-  const categoriesFromPosts = [...new Set(posts.map(p => p.data.category).filter(Boolean))];
-  const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : categoriesFromPosts;
 
-  return allCategories.map(cat => ({
-    params: { categoria: cat.toLowerCase().replace(/[^a-z0-9]/g, '-') },
-    props: { categoryName: cat },
+  // Normaliza schema misto (strings OU {name, slug}) em [{name, slug}]
+  const allCats = (Array.isArray(categoriesData) ? categoriesData : []).map((c) => {
+    if (c && typeof c === 'object' && c.name) return { name: String(c.name), slug: String(c.slug || slugify(c.name)) };
+    if (typeof c === 'string' && c.trim()) return { name: c.trim(), slug: slugify(c) };
+    return null;
+  }).filter(Boolean);
+
+  // Adiciona slugs órfãos (em posts mas não em categories.json)
+  const known = new Set();
+  allCats.forEach(c => { known.add(c.slug); known.add(c.name); });
+  for (const p of posts) {
+    const cat = p.data.category;
+    if (!cat || known.has(cat)) continue;
+    const s = slugify(cat);
+    if (!known.has(s)) {
+      allCats.push({ name: cat, slug: s });
+      known.add(s); known.add(cat);
+    }
+  }
+
+  return allCats.map(cat => ({
+    params: { categoria: cat.slug },
+    props: { categoryName: cat.name, categorySlug: cat.slug },
   }));
 }
 
-const { categoryName } = Astro.props;
+const { categoryName, categorySlug } = Astro.props;
 const allPosts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-const posts = allPosts.filter(p =>
-  (p.data.category || '').toLowerCase() === categoryName.toLowerCase()
-);
-const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+// Matching flexível: post.data.category pode ser o nome OU o slug
+function slug(s) {
+  return String(s || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+}
+const posts = allPosts.filter(p => {
+  const c = p.data.category || '';
+  return c === categoryName || c === categorySlug || slug(c) === categorySlug;
+});
 ---
 
 <BaseLayout title={categoryName} description={`Artigos sobre ${categoryName}`}>
