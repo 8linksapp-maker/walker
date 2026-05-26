@@ -1,0 +1,19 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import BackupManager from '../../components/admin/BackupManager';
+import { readData } from '../../lib/readData';
+
+const siteConfig = readData('siteConfig.json', {}) as any;
+const siteName = (siteConfig?.siteName || siteConfig?.title || 'site')
+  .toString()
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[̀-ͯ]/g, '')
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-|-$/g, '') || 'site';
+---
+
+<AdminLayout title="Backup" activeSection="backup">
+  <BackupManager client:load siteName={siteName} />
+</AdminLayout>
