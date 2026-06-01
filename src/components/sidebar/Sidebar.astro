@@ -15,11 +15,14 @@ const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
 const categoriesFromPosts = [...new Set(posts.map(post => post.data.category).filter(Boolean))];
 const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : categoriesFromPosts;
 
-// Contagem de posts por categoria
-const categoryCounts = allCategories.map(cat => ({
-  name: cat,
-  count: posts.filter(p => (p.data.category || '').toLowerCase() === cat.toLowerCase()).length
-}));
+// Contagem de posts por categoria (cat pode ser string OU {name, slug})
+const categoryCounts = allCategories.map(cat => {
+  const catName = typeof cat === 'string' ? cat : (cat?.name || '');
+  return {
+    name: catName,
+    count: posts.filter(p => (p.data.category || '').toLowerCase() === catName.toLowerCase()).length
+  };
+});
 ---
 
 <aside class="space-y-6 sticky top-24">
