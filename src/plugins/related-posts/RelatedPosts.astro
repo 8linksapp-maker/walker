@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../../lib/categorySlug';
 import { BLOG_BASE } from '../../lib/postUrl';
 /**
  * RelatedPosts.astro — Plugin Related Posts
@@ -55,7 +56,7 @@ if (enabled && category) {
           ? post.data.pubDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
           : new Date(post.data.pubDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
         const postCategory = post.data.category || '';
-        const catSlug = postCategory.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const catSlug = getCategorySlug(postCategory);
         return (
           <div class="col-md-4">
             <div class="post post-grid rounded bordered">

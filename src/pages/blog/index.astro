@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../../lib/categorySlug';
 import { BLOG_BASE } from '../../lib/postUrl';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
@@ -44,7 +45,7 @@ const posts = (await getCollection('blog')).sort(
                 <div class="post post-grid rounded bordered">
                   <div class="thumb top-rounded">
                     {post.data.category && (
-                      <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{post.data.category}</a>
+                      <a href={`/categoria/${getCategorySlug(post.data.category)}`} class="category-badge position-absolute">{post.data.category}</a>
                     )}
                     <a href={`${BLOG_BASE}/${post.slug}`}>
                       <div class="inner">

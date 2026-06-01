@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../lib/categorySlug';
 import { BLOG_BASE } from '../lib/postUrl';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
@@ -89,7 +90,7 @@ function formatDate(date: Date) {
             <div class="post featured-post-lg">
               <div class="details clearfix">
                 {featuredPost.data.category && (
-                  <a href={`/categoria/${featuredPost.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{featuredPost.data.category}</a>
+                  <a href={`/categoria/${getCategorySlug(featuredPost.data.category)}`} class="category-badge">{featuredPost.data.category}</a>
                 )}
                 <h1 class="post-title">
                   <a href={`${BLOG_BASE}/${featuredPost.slug}`}>{featuredPost.data.title}</a>
@@ -198,7 +199,7 @@ function formatDate(date: Date) {
                     <div class="post">
                       <div class="thumb rounded">
                         {editorPick.data.category && (
-                          <a href={`/categoria/${editorPick.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{editorPick.data.category}</a>
+                          <a href={`/categoria/${getCategorySlug(editorPick.data.category)}`} class="category-badge position-absolute">{editorPick.data.category}</a>
                         )}
                         <span class="post-format"><i class="icon-picture"></i></span>
                         <a href={`${BLOG_BASE}/${editorPick.slug}`}>
@@ -258,7 +259,7 @@ function formatDate(date: Date) {
                       <div class="post">
                         <div class="thumb rounded">
                           {trendingPosts[0].data.category && (
-                            <a href={`/categoria/${trendingPosts[0].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[0].data.category}</a>
+                            <a href={`/categoria/${getCategorySlug(trendingPosts[0].data.category)}`} class="category-badge position-absolute">{trendingPosts[0].data.category}</a>
                           )}
                           <span class="post-format"><i class="icon-picture"></i></span>
                           <a href={`${BLOG_BASE}/${trendingPosts[0].slug}`}>
@@ -301,7 +302,7 @@ function formatDate(date: Date) {
                       <div class="post">
                         <div class="thumb rounded">
                           {trendingPosts[2].data.category && (
-                            <a href={`/categoria/${trendingPosts[2].data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{trendingPosts[2].data.category}</a>
+                            <a href={`/categoria/${getCategorySlug(trendingPosts[2].data.category)}`} class="category-badge position-absolute">{trendingPosts[2].data.category}</a>
                           )}
                           <span class="post-format"><i class="icon-picture"></i></span>
                           <a href={`${BLOG_BASE}/${trendingPosts[2].slug}`}>
@@ -359,7 +360,7 @@ function formatDate(date: Date) {
                   <div class="post post-over-content col-md-6">
                     <div class="details clearfix">
                       {post.data.category && (
-                        <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge">{post.data.category}</a>
+                        <a href={`/categoria/${getCategorySlug(post.data.category)}`} class="category-badge">{post.data.category}</a>
                       )}
                       <h4 class="post-title"><a href={`${BLOG_BASE}/${post.slug}`}>{post.data.title}</a></h4>
                       <ul class="meta list-inline mb-0">
@@ -406,7 +407,7 @@ function formatDate(date: Date) {
                         <ul class="meta list-inline mb-3">
                           <li class="list-inline-item"><a href="/sobre">{post.data.author || siteConfig.author}</a></li>
                           {post.data.category && (
-                            <li class="list-inline-item"><a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}>{post.data.category}</a></li>
+                            <li class="list-inline-item"><a href={`/categoria/${getCategorySlug(post.data.category)}`}>{post.data.category}</a></li>
                           )}
                           <li class="list-inline-item">{formatDate(post.data.pubDate)}</li>
                         </ul>

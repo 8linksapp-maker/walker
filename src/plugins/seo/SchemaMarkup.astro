@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../../lib/categorySlug';
 /**
  * SchemaMarkup.astro — Plugin SEO Toolkit
  *
@@ -34,7 +35,7 @@ const orgName = seoConfig?.orgName || siteName;
 const orgLogo = seoConfig?.orgLogo || siteConfig?.logo || '';
 const sameAs: string[] = seoConfig?.sameAs || [];
 
-const categorySlug = category ? category.toLowerCase().replace(/[^a-z0-9]/g, '-') : '';
+const categorySlug = category ? getCategorySlug(category) : '';
 
 const articleData = articleSchema ? {
   '@context': 'https://schema.org',

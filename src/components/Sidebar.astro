@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../lib/categorySlug';
 import { BLOG_BASE } from '../lib/postUrl';
 import { getCollection } from 'astro:content';
 import { readData } from '../lib/readData';
@@ -96,7 +97,7 @@ const categoryCounts = allCategories.map(cat => ({
       <ul class="list">
         {categoryCounts.map(cat => (
           <li>
-            <a href={`/categoria/${cat.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}>{cat.name}</a>
+            <a href={`/categoria/${getCategorySlug(cat.name)}`}>{cat.name}</a>
             <span>({cat.count})</span>
           </li>
         ))}
@@ -138,7 +139,7 @@ const categoryCounts = allCategories.map(cat => ({
             <div class="post post-carousel">
               <div class="thumb rounded">
                 {post.data.category && (
-                  <a href={`/categoria/${post.data.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="category-badge position-absolute">{post.data.category}</a>
+                  <a href={`/categoria/${getCategorySlug(post.data.category)}`} class="category-badge position-absolute">{post.data.category}</a>
                 )}
                 <a href={`${BLOG_BASE}/${post.slug}`}>
                   <div class="inner">
@@ -178,7 +179,7 @@ const categoryCounts = allCategories.map(cat => ({
     </div>
     <div class="widget-content">
       {allCategories.map(cat => (
-        <a href={`/categoria/${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`} class="tag">#{cat}</a>
+        <a href={`/categoria/${getCategorySlug(cat)}`} class="tag">#{cat}</a>
       ))}
     </div>
   </div>

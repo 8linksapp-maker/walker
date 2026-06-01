@@ -1,4 +1,5 @@
 ---
+import { getCategorySlug } from '../../lib/categorySlug';
 interface Category {
   name: string;
   count: number;
@@ -21,7 +22,7 @@ const { categories } = Astro.props;
     {categories.map((cat) => (
       <li>
         <a
-          href={`/categoria/${cat.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+          href={`/categoria/${getCategorySlug(cat.name)}`}
           class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 group transition-colors"
         >
           <span class="text-slate-700 text-sm group-hover:text-primary-500 transition-colors flex items-center gap-2">
