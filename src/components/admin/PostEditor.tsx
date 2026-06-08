@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
 import { yamlEscape } from '../../lib/yamlEscape';
+import { normalizeCategories } from '../../lib/categorySlug';
 import SEOScoreWidget from '../../plugins/seo/SEOScoreWidget';
 
 interface PostEditorProps {
@@ -97,7 +98,7 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                     githubApi('read', 'src/data/categories.json'),
                 ]);
                 if (authRes.status === 'fulfilled') { const p = JSON.parse(authRes.value?.content || "{}"); if (Array.isArray(p)) setAuthors(p); }
-                if (catRes.status === 'fulfilled') { const p = JSON.parse(catRes.value?.content || "{}"); if (Array.isArray(p)) setDynamicCategories(p); }
+                if (catRes.status === 'fulfilled') { const p = JSON.parse(catRes.value?.content || "{}"); setDynamicCategories(normalizeCategories(p).map(c => c.name)); }
 
                 if (isEditing && filePath) {
                     const fileData = await githubApi('read', filePath);
