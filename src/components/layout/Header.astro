@@ -1,5 +1,5 @@
 ---
-import { getCategorySlug } from '../../lib/categorySlug';
+import { normalizeCategories, type CategoryEntry } from '../../lib/categorySlug';
 import { getCollection } from 'astro:content';
 import { readData } from '../../lib/readData';
 
@@ -7,11 +7,13 @@ const siteConfig = readData('siteConfig.json');
 const categoriesData = readData('categories.json', []);
 const menuItems: any[] = readData('menu.json', { items: [] }).items || [];
 
-const posts = await getCollection('blog');
-const categoriesFromPosts = [...new Set(posts.map(post => post.data.category).filter(Boolean))];
-
-const finalCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
-const allCategories = finalCategoriesData.length > 0 ? finalCategoriesData : categoriesFromPosts;
+const fromConfig: CategoryEntry[] = normalizeCategories(categoriesData);
+let allCategories: CategoryEntry[] = fromConfig;
+if (!allCategories.length) {
+  const posts = await getCollection('blog');
+  const fromPosts = [...new Set(posts.map(post => post.data.category).filter(Boolean))];
+  allCategories = normalizeCategories(fromPosts);
+}
 
 // menuHoverEnabled controla se o submenu abre passando o mouse (true) ou só ao clicar (false)
 const menuHoverEnabled = siteConfig?.menuHoverEnabled !== false;
@@ -48,10 +50,10 @@ const menuHoverEnabled = siteConfig?.menuHoverEnabled !== false;
                   </a>
                   {allCategories.map((cat) => (
                     <a
-                      href={`/categoria/${getCategorySlug(cat)}`}
+                      href={`/categoria/${cat.slug}`}
                       class="block px-4 py-2 text-sm text-slate-600 hover:bg-gray-50 hover:text-primary-500 transition-colors"
                     >
-                      {cat}
+                      {cat.name}
                     </a>
                   ))}
                 </div>
@@ -130,10 +132,10 @@ const menuHoverEnabled = siteConfig?.menuHoverEnabled !== false;
           </a>
           {item.showCategories && allCategories.map((cat) => (
             <a
-              href={`/categoria/${getCategorySlug(cat)}`}
+              href={`/categoria/${cat.slug}`}
               class="block px-3 py-2 pl-6 text-sm text-slate-500 hover:text-primary-500 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              {cat}
+              {cat.name}
             </a>
           ))}
         </>
