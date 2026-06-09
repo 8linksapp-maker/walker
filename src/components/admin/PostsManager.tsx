@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Plus, Search, Loader2, Trash2, Edit3, AlertCircle, Save, ChevronUp, ChevronDown, Check, X } from 'lucide-react';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
+import { normalizeCategories } from '../../lib/categorySlug';
 
 export default function PostsManager() {
     const [posts, setPosts] = useState<any[]>([]);
@@ -45,7 +46,7 @@ export default function PostsManager() {
             if (catRes.status === 'fulfilled' && catRes.value?.content) {
                 try {
                     const parsedCats = JSON.parse(catRes.value?.content || "{}");
-                    if (Array.isArray(parsedCats)) parsedCats.forEach((c: string) => allCategories.add(c));
+                    normalizeCategories(parsedCats).forEach(c => allCategories.add(c.name));
                 } catch {}
             }
 
