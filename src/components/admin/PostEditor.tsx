@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3 } from 'lucide-react';
+import { Save, AlertCircle, Loader2, ArrowLeft, Image as ImageIcon, Eye, Edit3, Video } from 'lucide-react';
 import { marked } from 'marked';
 import { triggerToast } from './CmsToaster';
 import { githubApi } from '../../lib/adminApi';
 import { yamlEscape } from '../../lib/yamlEscape';
 import { normalizeCategories } from '../../lib/categorySlug';
+import { parseVideoUrl } from '../../lib/videoEmbed';
 import SEOScoreWidget from '../../plugins/seo/SEOScoreWidget';
 
 interface PostEditorProps {
@@ -22,6 +23,19 @@ export default function PostEditor({ filePath }: PostEditorProps) {
     const [isPreview, setIsPreview] = useState(false);
     const [pendingUploads, setPendingUploads] = useState<Record<string, File>>({});
     const [QuillEditor, setQuillEditor] = useState<any>(null);
+    const [videoUrlInput, setVideoUrlInput] = useState('');
+
+    const insertVideoEmbed = () => {
+        const info = parseVideoUrl(videoUrlInput);
+        if (info.provider === 'unknown' || !info.embedUrl) {
+            triggerToast('URL não reconhecida. Use YouTube (youtube.com/watch ou youtu.be) ou Vimeo.', 'error');
+            return;
+        }
+        const iframeHtml = `<p><iframe src="${info.embedUrl}" width="100%" height="400" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="aspect-ratio: 16 / 9; height: auto; max-width: 100%; border-radius: 8px;"></iframe></p>`;
+        setPost(p => ({ ...p, content: (p.content || '') + iframeHtml }));
+        setVideoUrlInput('');
+        triggerToast('Vídeo inserido no final do artigo. Arraste no editor pra reposicionar.', 'success');
+    };
     const quillRef = React.useRef<any>(null);
 
     const insertImageInEditor = (file: File) => {
@@ -256,6 +270,29 @@ export default function PostEditor({ filePath }: PostEditorProps) {
                     {/* Content Editor */}
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <label className={labelClass}>Conteúdo do Artigo</label>
+
+                        {!isPreview && (
+                            <div className="mb-3 bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-2 flex-wrap">
+                                <Video className="w-4 h-4 text-violet-600 shrink-0" />
+                                <input
+                                    type="url"
+                                    placeholder="Cole URL do YouTube ou Vimeo (ex: https://youtube.com/watch?v=...)"
+                                    value={videoUrlInput}
+                                    onChange={e => setVideoUrlInput(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); insertVideoEmbed(); } }}
+                                    className="flex-1 min-w-[260px] bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={insertVideoEmbed}
+                                    disabled={!videoUrlInput.trim()}
+                                    className="bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 disabled:cursor-not-allowed text-white disabled:text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                >
+                                    Inserir vídeo
+                                </button>
+                            </div>
+                        )}
+
                         {isPreview ? (
                             <div className="prose prose-slate max-w-none border border-slate-200 rounded-xl p-6 min-h-[300px]" dangerouslySetInnerHTML={{ __html: post.content }} />
                         ) : QuillEditor ? (
